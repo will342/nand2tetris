@@ -11,35 +11,42 @@
 
 // Put your code here.
 
-(START)
-	@i
-	M = 1 	// i = i
-	
-	@2
-	M = 0 	//initlize product as 0
-	
-(LOOP)
-	@i
-	D = M 		// D = i
-	@1
-	D = D - M 	// D = i - value b
-	@END
-	D;JGT		//if i - b > 0 goto END
-	@0
-	D = M  		// D = a
-	@2
-	M = D + M	//sum a
-	@i
-	M = M + 1 	//i++
-	@LOOP
-	0;JMP
-	
-(END)
-	@END
-	0;JMP
-	
-	
-	
-	
+//initalize variables
+@i
+M = 0
+@R2
+M = 0
+
+//check R1 is 0, if so end program
+@R1
+D = M
+@End
+D; JEQ
+
+//check R0 is 0, if so end program
+//load R0
+@R0
+D = M
+@End
+D; JEQ
+
+//addition loop
+(Loop)
+@R0
+D = M
+@R2
+M = M + D
+@i
+M = M + 1
+D = M
+@R1
+D = M - D
+@Loop
+D; JGT 
+
+(End)
+@End
+0;JMP
+
 
 
