@@ -13,3 +13,61 @@
 
 // Put your code here.
 
+@row
+M = 0
+
+(loop)
+@KBD
+D = M
+@empty
+D;JEQ
+
+//check if row needs to stop going up
+@8191
+D = A
+@row
+D = D - M
+@stop
+D;JLE
+
+(fill)
+@row
+D = M
+@SCREEN
+A = A + D
+M = -1
+@row
+M = M + 1
+@loop
+0;JMP
+
+(stop)
+@24575
+M = -1
+D = A
+@8191
+D = A
+@row
+M = D
+@loop
+0;JMP
+
+(stop2)
+@row
+M = 0
+@loop
+0;JMP
+
+(empty)
+@row
+D = M
+@stop2
+D;JEQ
+@row
+M = M - 1
+D = M
+@SCREEN
+A = A + D
+M = 0
+@loop
+0;JMP
