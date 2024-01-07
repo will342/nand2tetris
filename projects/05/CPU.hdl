@@ -40,4 +40,95 @@ CHIP CPU {
 
     PARTS:
     // Put your code here:
+
+//Determine A or C instruction
+Not(in = instruction[15], out = Ainstr);
+Not(in = Ainstr, out = Cinstr);
+
+//Set WriteM
+And(a = Cinstr, b = instruction[3], out = writeM);
+
+//A Register
+Mux16(a = ALUout, b = instruction, sel = Ainstr, out = AregIn);
+Or(a=instruction[5], b = Ainstr, out = loadA);
+ARegister(in = AregIn, load = loadA, out = Areg);
+
+//DRegister
+And(a = instruction[4], b = Cinstr, out = loadD);
+DRegister(in = ALUout, load = loadD, out = D);
+
+//ALU
+Mux16(a = Areg, b = inM, sel = instruction[12], out = MuxALUout);
+ALU(x = D, y = MuxALUout, zx = instruction[11], nx = instruction[10], zy = instruction[9], ny = instruction[8], f = instruction[7], no = instruction[6], out = ALUout, zr = zr, ng = ng);
+
+//PC
+PC(in = Areg, load = loadpc, inc = true, reset = reset, out[0..14] = pc);
+
+//Output addressM
+And16(a=Areg, b=Areg, out[0..14]=addressM);
+
+//Output OutM
+And16(a = ALUout, b = ALUout, out = outM);
+
+//Calculate comparators
+Or(a = zr, b = ng, out = zrOrNg);
+Not(in=zrOrNg, out = pos);
+Or(a=pos, a = zr, out = posEq);
+Not(in = zr, out = not0);
+Or(a=ng, b = zr, out = negEq);
+
+//Check j instruction against comparators
+And(a=instruction[0], b = pos, out = JGT);
+And(a=instruction[1], b = zr, out = JEQ);
+And(a=instruction[0], b=instruction[1], out = j2j3);
+And(a=j2j3, b = posEq, out = JGE);
+And(a=instruction[2], b = ng, out = JLT);
+And(a=instruction[0], b=instruction[2], out = j1j3);
+And(a=j1j3, b=not0, out = JNE);
+And(a=instruction[1], b=instruction[2], out = j1j2);
+And(a=j1j2, b = negEq, out = JLE);
+And(a=j1j2, b=j1j3, out = JMP);
+
+//Check if any conditions are met
+Or8Way(in[0]=false, in[1]=JGT, in[2]=JEQ, in[3]=JGE, in[4]=JLT, in[5]=JNE, in[6]=JLE,in[7]=JMP, out = jump);
+
+//Check if C instruction and sent to PC
+And(a=Cinstr, b = jump, out = loadpc);
+
+
 }
+
+//Notes
+
+//The Hack CPU can be implemented elegantly and efficiently using only the chip-parts that appear in diagram 5.8, plus some elementary logic gates built in project 1.
+//If instruction is a C-instruction, then (i) the CPU causes the ALU to perform the computation
+//specified by the instruction, and (ii) the CPU causes this value to be stored in the subset of {A,D,M} registers
+//specified by the instruction. If one of these registers is M, the CPU asserts the writeM control bit output
+//(when writeM	is	0, any value may appear in outM).
+
+//d instructions
+//for register select if using ALU output or not
+// go to A register = d1 = [5]
+// go to D register = d2 = [4]
+// go to Memory[A] = d3 = [3]
+
+//c instructions
+// c1 = zx = [11]
+// c2 = nx = [10]
+// c3 = zy = [9]
+// c4 = ny = [8]
+// c5 = f = [7]
+// c6 = no = [6]
+
+//a instructions [12]
+// a = 0 meanus select A values
+// a = 1 means select M values
+
+//j instructions
+//j1 = [2]
+//j2 = [1]
+//j3 = [0]
+
+//check ALU output bits zr and ng which determine if jump condition is satisfied
+// if (out == 0) set zr = 1
+// if (out < 0) set ng = 1
