@@ -14,8 +14,7 @@ public:
     enum commandTypes{
         A_COMMAND,
         C_COMMAND,
-        L_COMMAND,
-        Unknown
+        L_COMMAND
     };
     Parser(const std::string& inputFilename);
     bool hasMoreCommands();
@@ -36,7 +35,7 @@ Parser::Parser(const std::string& inputFilename) {
     //Dynamically generate the output file name with ".hack" extension
     fs::path inputPath(inputFilename);
     fs::path outputPath = inputPath.replace_extension(".cln");
-     outputFile.open(outputPath);
+    outputFile.open(outputPath);
      if (!outputFile.is_open()) {
           std::cerr << "Error opening output file: " << outputPath << std::endl;
           //Handle error as needed
@@ -57,8 +56,22 @@ Parser::Parser(const std::string& inputFilename) {
         line.erase(std::remove_if(line.begin(), line.end(), ::isspace), line.end());
 
         // Write the modified line to the output file
-        outputFile << line << std::endl;
+        if (!line.empty()){
+            outputFile << line << std::endl;
+        }
+
+    
     }
+    
+    //reset input file, set .cln file as new input
+    inputFile.clear();
+    inputFile.seekg(0);
+    inputPath = outputPath;
+
+    //create .hack ouputfile and set as output
+    outputFile.close();
+    outputPath = inputPath.replace_extension(".hack");
+    outputFile.open(outputPath);
 }
 
 bool Parser::hasMoreCommands() {
@@ -73,16 +86,16 @@ void Parser::advance(){
     std::getline(inputFile, command);
  }
 
-
-//WIP commandType, only recognizes A commands
 Parser::commandTypes Parser::commandType(){
     std::string line;
-    if (std::getline(inputFile, line)){
-        if (line[0] == '@'){
-            return A_COMMAND;
-        }
+    std::getline(inputFile, line);
+    if (line[0] == '@'){
+        return A_COMMAND;
     }
-    return Unknown;
+    else if (line.find('=') != std::string::npos || line.find(';') != std::string::npos){
+        return C_COMMAND;
+    }
+    return L_COMMAND;
 }
 
 // Destructor implementation
@@ -101,17 +114,9 @@ Parser::~Parser() {
 int main() {
     std::string inputFileName = "test.asm";
     Parser parser(inputFileName);
-
     Parser::commandTypes test = parser.commandType();
     std::cout<<test; 
 
-    
-    // old tests
-    // std::string test = parser.advance();
-    // std::string test2 = parser.advance();
-    // std::cout << "main executed" << std::endl << test << std::endl << test2;
-    //cout << test1 <<endl << test2 <<endl;
-    
     return 0; // Exit with success
 
 
