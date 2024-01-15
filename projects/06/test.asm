@@ -1,5 +1,4 @@
-D = M
-
+D = M ; JMP
 //
 
 //this should be removed

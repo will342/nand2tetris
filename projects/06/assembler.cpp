@@ -11,6 +11,7 @@ private:
     std::ifstream inputFile;
     std::ofstream outputFile;
 public:
+    std::string command;
     enum commandTypes{
         A_COMMAND,
         C_COMMAND,
@@ -20,9 +21,24 @@ public:
     bool hasMoreCommands();
     void advance();
     commandTypes commandType();
+    std::string symbol();
+    std::string dest();
+    std::string comp();
+    std::string jump();
     ~Parser();          
 };
 
+class Code {
+private:
+    Parser& parser;
+public:
+    std::string test2;
+    Code(Parser& p);
+    std::string dest();
+    std::string comp();
+    std::string jump();
+    //~Code();
+};
 
 Parser::Parser(const std::string& inputFilename) {
     // Open the input file
@@ -66,8 +82,8 @@ Parser::Parser(const std::string& inputFilename) {
     //reset input file, set .cln file as new input
     inputFile.clear();
     inputFile.seekg(0);
-    inputPath = outputPath;
-
+    inputFile.close();
+    inputFile.open(outputPath);
     //create .hack ouputfile and set as output
     outputFile.close();
     outputPath = inputPath.replace_extension(".hack");
@@ -75,27 +91,61 @@ Parser::Parser(const std::string& inputFilename) {
 }
 
 bool Parser::hasMoreCommands() {
-    std::string line;
-    std::getline(inputFile, line);
-    bool whiteSpaceOnly = all_of(line.begin(), line.end(), [](unsigned char c) { return isspace(c); });
+    bool whiteSpaceOnly = all_of(command.begin(), command.end(), [](unsigned char c) { return isspace(c); });
     return !whiteSpaceOnly;
 }
 
 void Parser::advance(){
-    std::string command;
     std::getline(inputFile, command);
  }
 
 Parser::commandTypes Parser::commandType(){
-    std::string line;
-    std::getline(inputFile, line);
-    if (line[0] == '@'){
+    if (command[0] == '@'){
         return A_COMMAND;
     }
-    else if (line.find('=') != std::string::npos || line.find(';') != std::string::npos){
+    else if (command.find('=') != std::string::npos || command.find(';') != std::string::npos){
         return C_COMMAND;
     }
     return L_COMMAND;
+}
+
+std::string Parser::symbol(){
+    Parser::commandTypes commandType = Parser::commandType();
+    if (commandType == A_COMMAND){
+        std::string decimal = command.substr(1);
+        return decimal;
+    }
+    else if (commandType == L_COMMAND){
+        return command;
+    }
+    return "Not an A or L command";
+}
+
+std::string Parser::dest(){
+    Parser::commandTypes commandType = Parser::commandType();
+    if (commandType = C_COMMAND){
+        std::string dest = command.substr(0,1);
+        return dest;
+    }
+    return "Not a C command";
+}
+
+std::string Parser::comp(){
+    Parser::commandTypes commandType = Parser::commandType();
+    if (commandType = C_COMMAND){
+        std::string comp = command.substr(command.find('=') + 1, command.find(';'));
+        return comp;
+    }
+    return "Not a C command";
+}
+
+std::string Parser::jump(){
+    //Parser::commandTypes commandType = Parser::commandType();
+    if (true){
+        std::string comp = command.substr(command.find(';')+1);
+        return comp;
+    }
+    return "";
 }
 
 // Destructor implementation
@@ -111,11 +161,17 @@ Parser::~Parser() {
     }
 }
 
+Code::Code(Parser& p) : parser(p) {
+    std::cout<<parser.jump();
+}
+
 int main() {
     std::string inputFileName = "test.asm";
     Parser parser(inputFileName);
-    Parser::commandTypes test = parser.commandType();
-    std::cout<<test; 
+    parser.advance();
+    std::string test = parser.jump();
+    std::cout<<test;
+    Code code(parser);
 
     return 0; // Exit with success
 
