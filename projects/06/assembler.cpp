@@ -3,14 +3,15 @@
 #include <string>
 #include <filesystem>
 #include <algorithm>
+#include <bitset>
 
 namespace fs = std::filesystem; 
 
 class Parser {
 private:
+public:
     std::ifstream inputFile;
     std::ofstream outputFile;
-public:
     std::string command;
     enum commandTypes{
         A_COMMAND,
@@ -34,9 +35,9 @@ private:
 public:
     std::string test2;
     Code(Parser& p);
-    std::string dest();
-    std::string comp();
-    std::string jump();
+    std::bitset<3> dest();
+    std::bitset<7> comp();
+    std::bitset<3> jump();
     //~Code();
 };
 
@@ -162,18 +163,259 @@ Parser::~Parser() {
 }
 
 Code::Code(Parser& p) : parser(p) {
-    std::cout<<parser.jump();
+    Parser::commandTypes commandType = parser.commandType();
+    if (commandType == Parser::A_COMMAND){
+        int decimal = std::stoi(parser.symbol());
+        std::bitset<16> binaryOut(decimal);
+        parser.outputFile << binaryOut << std::endl;
+    }
+    if (commandType == Parser::C_COMMAND){
+        std::bitset<3> start(7);
+        std::bitset<3> dest = Code::dest();
+        std::bitset<7> comp = Code::comp();
+        std::bitset<3> jump = Code::jump();
+        std::cout<<"dest = "<<dest<<std::endl<<"comp = "<<comp<<std::endl<<"jump = "<<jump<<std::endl;
+        std::cout<<std::endl<<"full instruction"<<std::endl<<start<<comp<<dest<<jump;  
+    }
 }
+
+std::bitset<3> Code::dest(){
+    std::string dest = parser.dest();
+    if (dest == ""){
+        std::bitset<3> output(0);
+        return output;
+    }
+    if (dest == "M"){
+        std::bitset<3> output(1);
+        return output;
+    }
+    if (dest == "D"){
+        std::bitset<3> output(2);
+        return output;
+    }
+    if (dest == "DM"){
+        std::bitset<3> output(3);
+        return output;
+    }
+    if (dest == "A"){
+        std::bitset<3> output(4);
+        return output;
+    }
+    if (dest == "AM"){
+        std::bitset<3> output(5);
+        return output;
+    }
+    if (dest == "AD"){
+        std::bitset<3> output(6);
+        return output;
+    }
+    if (dest == "ADM"){
+        std::bitset<3> output(7);
+        return output;
+    }
+    std::cout<<"dest not recognized in code module";
+    return 0;
+}
+
+std::bitset<7> Code::comp(){
+    std::string comp = parser.comp();
+    if (comp == "0"){
+        std::bitset<7> output(0b0101010);
+        return output;
+    }
+
+    if (comp == "1"){
+        std::bitset<7> output(0b0111111);
+        return output;
+    }
+
+    if (comp == "-1"){
+        std::bitset<7> output(0b0111010);
+        return output;
+    }
+
+    if (comp == "D"){
+        std::bitset<7> output(0b0001100);
+        return output;
+    }
+
+    if (comp == "A"){
+        std::bitset<7> output(0b0110000);
+        return output;
+    }
+
+    if (comp == "!D"){
+        std::bitset<7> output(0b0001101);
+        return output;
+    }
+
+    if (comp == "!A"){
+        std::bitset<7> output(0b0110001);
+        return output;
+    }
+
+    if (comp == "-D"){
+        std::bitset<7> output(0b0001111);
+        return output;
+    }
+
+    if (comp == "-A"){
+        std::bitset<7> output(0b0110011);
+        return output;
+    }
+
+    if (comp == "D+1"){
+        std::bitset<7> output(0b0001110);
+        return output;
+    }
+
+    if (comp == "A+1"){
+        std::bitset<7> output(0b0110111);
+        return output;
+    }
+
+    if (comp == "D-1"){
+        std::bitset<7> output(0b0001110);
+        return output;
+    }
+
+    if (comp == "A-1"){
+        std::bitset<7> output(0b0110010);
+        return output;
+    }
+
+    if (comp == "D+A"){
+        std::bitset<7> output(0b0000010);
+        return output;
+    }
+
+    if (comp == "D-A"){
+        std::bitset<7> output(0b0010011);
+        return output;
+    }
+
+    if (comp == "A-D"){
+        std::bitset<7> output(0b0000111);
+        return output;
+    }
+
+    if (comp == "D&A"){
+        std::bitset<7> output(0b0000000);
+        return output;
+    }
+
+    if (comp == "D|A"){
+        std::bitset<7> output(0b0010101);
+        return output;
+    }
+
+    if (comp == "M"){
+        std::bitset<7> output(0b1110000);
+        return output;
+    }
+
+    if (comp == "!M"){
+        std::bitset<7> output(0b1110001);
+        return output;
+    }
+
+    if (comp == "-M"){
+        std::bitset<7> output(0b1110011);
+        return output;
+    }
+
+    if (comp == "M+1"){
+        std::bitset<7> output(0b1110111);
+        return output;
+    }
+
+    if (comp == "M-1"){
+        std::bitset<7> output(0b1110010);
+        return output;
+    }
+
+    if (comp == "D+M"){
+        std::bitset<7> output(0b1000010);
+        return output;
+    }
+
+    if (comp == "D-M"){
+        std::bitset<7> output(0b1010011);
+        return output;
+    }
+
+    if (comp == "M-D"){
+        std::bitset<7> output(0b1000111);
+        return output;
+    }
+
+    if (comp == "D&M"){
+        std::bitset<7> output(0b1000000);
+        return output;
+    }
+
+    if (comp == "D|M"){
+        std::bitset<7> output(0b1010101);
+        return output;
+    }
+
+    std::cout<<"comp not recognized in code module";
+    return 0;
+}
+
+std::bitset<3> Code::jump(){
+    std::string jump = parser.jump();
+    std::cout<< jump << std::endl;
+    if (jump.empty()){
+        std::bitset<3> output(0);
+        return output;
+    }
+
+    if (jump == "JGT"){
+        std::bitset<3> output(1);
+        return output;
+    }
+
+    if (jump == "JEQ"){
+        std::bitset<3> output(2);
+        return output;
+    }
+
+    if (jump == "JGE"){
+        std::bitset<3> output(3);
+        return output;
+    }
+
+    if (jump == "JLT"){
+        std::bitset<3> output(4);
+        return output;
+    }
+
+    if (jump == "JNE"){
+        std::bitset<3> output(5);
+        return output;
+    }
+
+    if (jump == "JLE"){
+        std::bitset<3> output(6);
+        return output;
+    }
+
+    if (jump == "JMP"){
+        std::bitset<3> output(7);
+        return output;
+    }
+
+    std::cout<<"jump not found in code module"<<std::endl;
+    return 0;
+}
+
 
 int main() {
     std::string inputFileName = "test.asm";
     Parser parser(inputFileName);
     parser.advance();
-    std::string test = parser.jump();
-    std::cout<<test;
     Code code(parser);
 
     return 0; // Exit with success
-
-
 }
