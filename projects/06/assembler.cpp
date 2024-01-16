@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <bitset>
+#include <unordered_map>
 
 namespace fs = std::filesystem; 
 
@@ -33,12 +34,19 @@ class Code {
 private:
     Parser& parser;
 public:
-    std::string test2;
     Code(Parser& p);
     std::bitset<3> dest();
     std::bitset<7> comp();
     std::bitset<3> jump();
-    //~Code();
+};
+
+class SymbolTable {
+    private:
+    public:
+        SymbolTable();
+        void addEntry(std::string symnbol, int address);
+        bool contains(std::string symbol);
+        int getAddress(std::string symbol);
 };
 
 Parser::Parser(const std::string& inputFilename) {
@@ -125,7 +133,6 @@ std::string Parser::dest(){
     Parser::commandTypes commandType = Parser::commandType();
     if (commandType = C_COMMAND){
         std::string dest = command.substr(0,command.find('='));
-        std::cout<<"dest function "<<dest<<std::endl;
         return dest;
     }
     return "Not a C command";
@@ -177,16 +184,12 @@ Code::Code(Parser& p) : parser(p) {
         if (jump !=0b000){
             dest = 0b000;
         }
-        std::cout<<"dest = "<<dest<<std::endl<<"comp = "<<comp<<std::endl<<"jump = "<<jump<<std::endl;
-        std::cout<<std::endl<<"full instruction"<<std::endl<<start<<comp<<dest<<jump<<std::endl;  
         parser.outputFile <<start<<comp<<dest<<jump<<std::endl;
     }
-    std::cout<<"code: A or C command not found"<<std::endl;
 }
 
 std::bitset<3> Code::dest(){
     std::string dest = parser.dest();
-    std::cout<<"code dest "<<dest<<std::endl;
     if (dest == ""){
         std::bitset<3> output(0);
         return output;
@@ -219,7 +222,6 @@ std::bitset<3> Code::dest(){
         std::bitset<3> output(7);
         return output;
     }
-    std::cout<<"dest not recognized in code module"<<std::endl;
     return 0;
 }
 
@@ -365,13 +367,11 @@ std::bitset<7> Code::comp(){
         return output;
     }
 
-    std::cout<<"comp not recognized in code module";
     return 0;
 }
 
 std::bitset<3> Code::jump(){
     std::string jump = parser.jump();
-    std::cout<< jump << std::endl;
     if (jump.empty()){
         std::bitset<3> output(0);
         return output;
@@ -412,15 +412,50 @@ std::bitset<3> Code::jump(){
         return output;
     }
 
-    std::cout<<"jump not found in code module"<<std::endl;
     return 0;
 }
 
+SymbolTable::SymbolTable(){
+    std::unordered_map<std::string, int> SymbolTable;
+
+    //create R0-R15 entries
+    for (int i=0; i<16; i++){
+        std::string key = "R" + std::to_string(i);
+        SymbolTable[key] = i;
+    }
+
+    //create other pre-defined symbols
+    SymbolTable["SP"] = 0;
+    SymbolTable["LCL"] = 1;
+    SymbolTable["ARG"] = 2;
+    SymbolTable["THIS"] = 3;
+    SymbolTable["THAT"] = 4;
+    SymbolTable["SCREEN"] = 16384;
+    SymbolTable["KBD"] = 24576;
+
+    for (const auto& pair : SymbolTable) {
+        std::cout << "Key: " << pair.first << ", Value: " << pair.second << std::endl;
+    }
+
+}
+
+void SymbolTable::addEntry(std::string symbol, int address){
+
+}
+
+bool SymbolTable::contains(std::string symbol){
+    return true;
+}
+
+int SymbolTable::getAddress(std::string symbol){
+    return 0;
+}
 
 int main() {
-    std::string inputFileName = "PongL.asm";
+    std::string inputFileName = "test.asm";
     Parser parser(inputFileName);
     bool hasMoreCommands = true;
+    SymbolTable table;
 
     while(hasMoreCommands){
         parser.advance();
