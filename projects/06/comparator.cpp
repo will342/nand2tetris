@@ -21,8 +21,8 @@ bool areFilesEqual(const std::string& file1, const std::string& file2) {
 }
 
 int main() {
-    std::string file1 = "pongL.hack";
-    std::string file2 = "pongL_test.hack";
+    std::string file1 = "PongL.hack";
+    std::string file2 = "PongL_truth.hack";
 
     if (areFilesEqual(file1, file2)) {
         std::cout << "The contents of the files are identical." << std::endl;

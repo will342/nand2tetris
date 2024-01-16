@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <bitset>
 #include <unordered_map>
+#include <map>
 
 namespace fs = std::filesystem; 
 
@@ -190,181 +191,63 @@ Code::Code(Parser& p) : parser(p) {
 
 std::bitset<3> Code::dest(){
     std::string dest = parser.dest();
-    if (dest == ""){
-        std::bitset<3> output(0);
-        return output;
+    const std::map<std::string, std::bitset<3>> destMap = {
+        {"",0},
+        {"M",1},
+        {"D",2},
+        {"DM",3},
+        {"MD",3},
+        {"A",4},
+        {"AM",5},
+        {"AD",6},
+        {"ADM",7},
+        {"AMD",7}
+    };
+
+    auto it = destMap.find(dest);
+    if (it != destMap.end()){
+        return it->second;
     }
-    if (dest == "M"){
-        std::bitset<3> output(1);
-        return output;
-    }
-    if (dest == "D"){
-        std::bitset<3> output(2);
-        return output;
-    }
-    if (dest == "DM" || dest == "MD"){
-        std::bitset<3> output(3);
-        return output;
-    }
-    if (dest == "A"){
-        std::bitset<3> output(4);
-        return output;
-    }
-    if (dest == "AM"){
-        std::bitset<3> output(5);
-        return output;
-    }
-    if (dest == "AD"){
-        std::bitset<3> output(6);
-        return output;
-    }
-    if (dest == "ADM" || dest == "AMD"){
-        std::bitset<3> output(7);
-        return output;
-    }
+
     return 0;
 }
 
 std::bitset<7> Code::comp(){
     std::string comp = parser.comp();
-    if (comp == "0"){
-        std::bitset<7> output(0b0101010);
-        return output;
-    }
+    const std::map<std::string, std::bitset<7>> compMap = {
+        {"0",0b0101010},
+        {"1",0b0111111},
+        {"-1",0b0111010},
+        {"D",0b0001100},
+        {"A",0b0110000},
+        {"!D",0b0001101},
+        {"!A",0b0110001},
+        {"-D",0b0001111},
+        {"-A",0b0110011},
+        {"D+1",0b0011111},
+        {"A+1",0b0110111},
+        {"D-1",0b0001110},
+        {"A-1",0b0110010},
+        {"D+A",0b0000010},
+        {"D-A",0b0010011},
+        {"A-D",0b0000111},
+        {"D&A",0b0000000},
+        {"D|A",0b0010101},
+        {"M",0b1110000},
+        {"!M",0b1110001},
+        {"-M",0b1110011},
+        {"M+1",0b1110111},
+        {"M-1",0b1110010},
+        {"D+M",0b1000010},
+        {"D-M",0b1010011},
+        {"M-D",0b1000111},
+        {"D&M",0b1000000},
+        {"D|M",0b1010101}
+    };
 
-    if (comp == "1"){
-        std::bitset<7> output(0b0111111);
-        return output;
-    }
-
-    if (comp == "-1"){
-        std::bitset<7> output(0b0111010);
-        return output;
-    }
-
-    if (comp == "D"){
-        std::bitset<7> output(0b0001100);
-        return output;
-    }
-
-    if (comp == "A"){
-        std::bitset<7> output(0b0110000);
-        return output;
-    }
-
-    if (comp == "!D"){
-        std::bitset<7> output(0b0001101);
-        return output;
-    }
-
-    if (comp == "!A"){
-        std::bitset<7> output(0b0110001);
-        return output;
-    }
-
-    if (comp == "-D"){
-        std::bitset<7> output(0b0001111);
-        return output;
-    }
-
-    if (comp == "-A"){
-        std::bitset<7> output(0b0110011);
-        return output;
-    }
-
-    if (comp == "D+1"){
-        std::bitset<7> output(0b0011111);
-        return output;
-    }
-
-    if (comp == "A+1"){
-        std::bitset<7> output(0b0110111);
-        return output;
-    }
-
-    if (comp == "D-1"){
-        std::bitset<7> output(0b0001110);
-        return output;
-    }
-
-    if (comp == "A-1"){
-        std::bitset<7> output(0b0110010);
-        return output;
-    }
-
-    if (comp == "D+A"){
-        std::bitset<7> output(0b0000010);
-        return output;
-    }
-
-    if (comp == "D-A"){
-        std::bitset<7> output(0b0010011);
-        return output;
-    }
-
-    if (comp == "A-D"){
-        std::bitset<7> output(0b0000111);
-        return output;
-    }
-
-    if (comp == "D&A"){
-        std::bitset<7> output(0b0000000);
-        return output;
-    }
-
-    if (comp == "D|A"){
-        std::bitset<7> output(0b0010101);
-        return output;
-    }
-
-    if (comp == "M"){
-        std::bitset<7> output(0b1110000);
-        return output;
-    }
-
-    if (comp == "!M"){
-        std::bitset<7> output(0b1110001);
-        return output;
-    }
-
-    if (comp == "-M"){
-        std::bitset<7> output(0b1110011);
-        return output;
-    }
-
-    if (comp == "M+1"){
-        std::bitset<7> output(0b1110111);
-        return output;
-    }
-
-    if (comp == "M-1"){
-        std::bitset<7> output(0b1110010);
-        return output;
-    }
-
-    if (comp == "D+M"){
-        std::bitset<7> output(0b1000010);
-        return output;
-    }
-
-    if (comp == "D-M"){
-        std::bitset<7> output(0b1010011);
-        return output;
-    }
-
-    if (comp == "M-D"){
-        std::bitset<7> output(0b1000111);
-        return output;
-    }
-
-    if (comp == "D&M"){
-        std::bitset<7> output(0b1000000);
-        return output;
-    }
-
-    if (comp == "D|M"){
-        std::bitset<7> output(0b1010101);
-        return output;
+    auto it = compMap.find(comp);
+    if (it != compMap.end()){
+        return it->second;
     }
 
     return 0;
@@ -372,44 +255,22 @@ std::bitset<7> Code::comp(){
 
 std::bitset<3> Code::jump(){
     std::string jump = parser.jump();
-    if (jump.empty()){
-        std::bitset<3> output(0);
-        return output;
-    }
+    // Mapping jump strings to corresponding bitset values
+    const std::map<std::string, std::bitset<3>> jumpMap = {
+        {"", 0},   // Empty string
+        {"JGT", 1},
+        {"JEQ", 2},
+        {"JGE", 3},
+        {"JLT", 4},
+        {"JNE", 5},
+        {"JLE", 6},
+        {"JMP", 7}
+    };
 
-    if (jump == "JGT"){
-        std::bitset<3> output(1);
-        return output;
-    }
-
-    if (jump == "JEQ"){
-        std::bitset<3> output(2);
-        return output;
-    }
-
-    if (jump == "JGE"){
-        std::bitset<3> output(3);
-        return output;
-    }
-
-    if (jump == "JLT"){
-        std::bitset<3> output(4);
-        return output;
-    }
-
-    if (jump == "JNE"){
-        std::bitset<3> output(5);
-        return output;
-    }
-
-    if (jump == "JLE"){
-        std::bitset<3> output(6);
-        return output;
-    }
-
-    if (jump == "JMP"){
-        std::bitset<3> output(7);
-        return output;
+    // Using the map to get the corresponding bitset value
+    auto it = jumpMap.find(jump);
+    if (it != jumpMap.end()) {
+        return it->second;
     }
 
     return 0;
@@ -452,7 +313,7 @@ int SymbolTable::getAddress(std::string symbol){
 }
 
 int main() {
-    std::string inputFileName = "test.asm";
+    std::string inputFileName = "PongL.asm";
     Parser parser(inputFileName);
     bool hasMoreCommands = true;
     SymbolTable table;
