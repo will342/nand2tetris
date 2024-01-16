@@ -92,8 +92,7 @@ Parser::Parser(const std::string& inputFilename) {
 }
 
 bool Parser::hasMoreCommands() {
-    bool whiteSpaceOnly = all_of(command.begin(), command.end(), [](unsigned char c) { return isspace(c); });
-    return !whiteSpaceOnly;
+    return !command.empty();
 }
 
 void Parser::advance(){
@@ -125,7 +124,8 @@ std::string Parser::symbol(){
 std::string Parser::dest(){
     Parser::commandTypes commandType = Parser::commandType();
     if (commandType = C_COMMAND){
-        std::string dest = command.substr(0,1);
+        std::string dest = command.substr(0,command.find('='));
+        std::cout<<"dest function "<<dest<<std::endl;
         return dest;
     }
     return "Not a C command";
@@ -169,18 +169,24 @@ Code::Code(Parser& p) : parser(p) {
         std::bitset<16> binaryOut(decimal);
         parser.outputFile << binaryOut << std::endl;
     }
-    if (commandType == Parser::C_COMMAND){
+    else if (commandType == Parser::C_COMMAND){
         std::bitset<3> start(7);
         std::bitset<3> dest = Code::dest();
         std::bitset<7> comp = Code::comp();
         std::bitset<3> jump = Code::jump();
+        if (jump !=0b000){
+            dest = 0b000;
+        }
         std::cout<<"dest = "<<dest<<std::endl<<"comp = "<<comp<<std::endl<<"jump = "<<jump<<std::endl;
-        std::cout<<std::endl<<"full instruction"<<std::endl<<start<<comp<<dest<<jump;  
+        std::cout<<std::endl<<"full instruction"<<std::endl<<start<<comp<<dest<<jump<<std::endl;  
+        parser.outputFile <<start<<comp<<dest<<jump<<std::endl;
     }
+    std::cout<<"code: A or C command not found"<<std::endl;
 }
 
 std::bitset<3> Code::dest(){
     std::string dest = parser.dest();
+    std::cout<<"code dest "<<dest<<std::endl;
     if (dest == ""){
         std::bitset<3> output(0);
         return output;
@@ -193,7 +199,7 @@ std::bitset<3> Code::dest(){
         std::bitset<3> output(2);
         return output;
     }
-    if (dest == "DM"){
+    if (dest == "DM" || dest == "MD"){
         std::bitset<3> output(3);
         return output;
     }
@@ -209,11 +215,11 @@ std::bitset<3> Code::dest(){
         std::bitset<3> output(6);
         return output;
     }
-    if (dest == "ADM"){
+    if (dest == "ADM" || dest == "AMD"){
         std::bitset<3> output(7);
         return output;
     }
-    std::cout<<"dest not recognized in code module";
+    std::cout<<"dest not recognized in code module"<<std::endl;
     return 0;
 }
 
@@ -265,7 +271,7 @@ std::bitset<7> Code::comp(){
     }
 
     if (comp == "D+1"){
-        std::bitset<7> output(0b0001110);
+        std::bitset<7> output(0b0011111);
         return output;
     }
 
@@ -412,10 +418,15 @@ std::bitset<3> Code::jump(){
 
 
 int main() {
-    std::string inputFileName = "test.asm";
+    std::string inputFileName = "PongL.asm";
     Parser parser(inputFileName);
-    parser.advance();
-    Code code(parser);
+    bool hasMoreCommands = true;
 
+    while(hasMoreCommands){
+        parser.advance();
+        Code code(parser);
+        hasMoreCommands = parser.hasMoreCommands();
+    }
+    
     return 0; // Exit with success
 }
