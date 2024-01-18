@@ -109,9 +109,11 @@ void Parser::advance(){
  }
 
 Parser::commandTypes Parser::commandType(){
-    if (command[0] == '@'){
+    //check command that first char is @ and second char is a number
+    if (command[0] == '@' && std::isdigit(static_cast<unsigned char>(command[1]))){
         return A_COMMAND;
     }
+    //check that command either has = or ;
     else if (command.find('=') != std::string::npos || command.find(';') != std::string::npos){
         return C_COMMAND;
     }
@@ -172,22 +174,22 @@ Parser::~Parser() {
 
 Code::Code(Parser& p) : parser(p) {
     Parser::commandTypes commandType = parser.commandType();
-    if (commandType == Parser::A_COMMAND){
-        int decimal = std::stoi(parser.symbol());
-        std::bitset<16> binaryOut(decimal);
-        parser.outputFile << binaryOut << std::endl;
-    }
-    else if (commandType == Parser::C_COMMAND){
-        std::bitset<3> start(7);
-        std::bitset<3> dest = Code::dest();
-        std::bitset<7> comp = Code::comp();
-        std::bitset<3> jump = Code::jump();
+        if (commandType == Parser::A_COMMAND){
+            int decimal = std::stoi(parser.symbol());
+            std::bitset<16> binaryOut(decimal);
+            parser.outputFile << binaryOut << std::endl;
+        }
+        else if (commandType == Parser::C_COMMAND){
+            std::bitset<3> start(7);
+            std::bitset<3> dest = Code::dest();
+            std::bitset<7> comp = Code::comp();
+            std::bitset<3> jump = Code::jump();
         if (jump !=0b000){
             dest = 0b000;
         }
         parser.outputFile <<start<<comp<<dest<<jump<<std::endl;
+        }
     }
-}
 
 std::bitset<3> Code::dest(){
     std::string dest = parser.dest();
@@ -313,7 +315,7 @@ int SymbolTable::getAddress(std::string symbol){
 }
 
 int main() {
-    std::string inputFileName = "PongL.asm";
+    std::string inputFileName = "test.asm";
     Parser parser(inputFileName);
     bool hasMoreCommands = true;
     SymbolTable table;
