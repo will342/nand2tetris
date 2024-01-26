@@ -31,23 +31,26 @@ public:
     ~Parser();          
 };
 
-class Code {
-private:
-    Parser& parser;
-public:
-    Code(Parser& p);
-    std::bitset<3> dest();
-    std::bitset<7> comp();
-    std::bitset<3> jump();
-};
-
 class SymbolTable {
     private:
     public:
+        std::unordered_map<std::string, int> symbolTable;
         SymbolTable();
         void addEntry(std::string symnbol, int address);
         bool contains(std::string symbol);
         int getAddress(std::string symbol);
+};
+
+class Code {
+private:
+    Parser& parser;
+    SymbolTable& table;
+    int& RAM_address;
+public:
+    Code(Parser& p, SymbolTable& t, int& address);
+    std::bitset<3> dest();
+    std::bitset<7> comp();
+    std::bitset<3> jump();
 };
 
 Parser::Parser(const std::string& inputFilename) {
@@ -172,24 +175,44 @@ Parser::~Parser() {
     }
 }
 
-Code::Code(Parser& p) : parser(p) {
+Code::Code(Parser& p, SymbolTable& t, int& address) : parser(p), table(t), RAM_address(address) {
     Parser::commandTypes commandType = parser.commandType();
-        if (commandType == Parser::A_COMMAND){
-            int decimal = std::stoi(parser.symbol());
-            std::bitset<16> binaryOut(decimal);
-            parser.outputFile << binaryOut << std::endl;
-        }
-        else if (commandType == Parser::C_COMMAND){
-            std::bitset<3> start(7);
-            std::bitset<3> dest = Code::dest();
-            std::bitset<7> comp = Code::comp();
-            std::bitset<3> jump = Code::jump();
+    //write an A command
+    if (commandType == Parser::A_COMMAND){
+        int decimal = std::stoi(parser.symbol());
+        std::bitset<16> binaryOut(decimal);
+        parser.outputFile << binaryOut << std::endl;
+    }
+    
+    //write a C command
+    else if (commandType == Parser::C_COMMAND){
+        std::bitset<3> start(7);
+        std::bitset<3> dest = Code::dest();
+        std::bitset<7> comp = Code::comp();
+        std::bitset<3> jump = Code::jump();
         if (jump !=0b000){
             dest = 0b000;
         }
         parser.outputFile <<start<<comp<<dest<<jump<<std::endl;
         }
+        
+    //write an L command, generate new symbol table entry if needed
+    else if (commandType == Parser::L_COMMAND && parser.command[0] == '@'){
+        std::string commandSub = parser.command.substr(1);
+        if (table.contains(commandSub)){
+            int address = table.getAddress(commandSub);
+            std::bitset<16> binaryOut(address);
+            parser.outputFile << binaryOut << std::endl;
+            }
+
+        else{
+            table.addEntry(commandSub, RAM_address);
+            std::bitset<16> binaryOut(RAM_address);
+            parser.outputFile << binaryOut << std::endl;
+            RAM_address +=1;
+        }
     }
+}
 
 std::bitset<3> Code::dest(){
     std::string dest = parser.dest();
@@ -279,52 +302,76 @@ std::bitset<3> Code::jump(){
 }
 
 SymbolTable::SymbolTable(){
-    std::unordered_map<std::string, int> SymbolTable;
-
     //create R0-R15 entries
     for (int i=0; i<16; i++){
         std::string key = "R" + std::to_string(i);
-        SymbolTable[key] = i;
+        symbolTable[key] = i;
     }
 
     //create other pre-defined symbols
-    SymbolTable["SP"] = 0;
-    SymbolTable["LCL"] = 1;
-    SymbolTable["ARG"] = 2;
-    SymbolTable["THIS"] = 3;
-    SymbolTable["THAT"] = 4;
-    SymbolTable["SCREEN"] = 16384;
-    SymbolTable["KBD"] = 24576;
-
-    for (const auto& pair : SymbolTable) {
-        std::cout << "Key: " << pair.first << ", Value: " << pair.second << std::endl;
-    }
-
+    symbolTable["SP"] = 0;
+    symbolTable["LCL"] = 1;
+    symbolTable["ARG"] = 2;
+    symbolTable["THIS"] = 3;
+    symbolTable["THAT"] = 4;
+    symbolTable["SCREEN"] = 16384;
+    symbolTable["KBD"] = 24576;
 }
 
 void SymbolTable::addEntry(std::string symbol, int address){
-
+    SymbolTable::symbolTable[symbol] = address;
 }
 
 bool SymbolTable::contains(std::string symbol){
-    return true;
+    auto it = SymbolTable::symbolTable.find(symbol);
+    if (it !=SymbolTable::symbolTable.end()){
+        return true;
+    }
+
+    return false;
 }
 
 int SymbolTable::getAddress(std::string symbol){
-    return 0;
+    return SymbolTable::symbolTable.find(symbol)->second;
 }
 
 int main() {
-    std::string inputFileName = "test.asm";
+    std::string inputFileName = "Pong.asm";
     Parser parser(inputFileName);
     bool hasMoreCommands = true;
     SymbolTable table;
+    int ROM_address = 0;
+    int RAM_address = 16;
 
+    //pass 1: setup up (xxx) pseudocommand
     while(hasMoreCommands){
         parser.advance();
-        Code code(parser);
+        if (parser.commandType() == Parser::L_COMMAND && parser.command[0] == '('){
+            std::string subCommand = parser.command.substr(1, parser.command.length() - 2);
+            table.addEntry(subCommand, ROM_address);
+            ROM_address -=1;
+        }
+        ROM_address += 1;
         hasMoreCommands = parser.hasMoreCommands();
     }
-    
+
+    //reset for next pass
+    hasMoreCommands = true;
+    parser.inputFile.clear();
+    parser.inputFile.seekg(0);
+
+    //pass 2: other symbols and write
+    while(hasMoreCommands){
+        parser.advance();
+        Code code(parser, table, RAM_address);
+        hasMoreCommands = parser.hasMoreCommands();
+    }
+
+    //symbol table test output
+    for (const auto& pair : table.symbolTable) {
+        std::cout << "Key: " << pair.first << ", Value: " << pair.second << std::endl;
+    }
+
+   
     return 0; // Exit with success
 }
