@@ -47,7 +47,7 @@ Parser::Parser(const std::string& inputFilename) {
         // Handle error as needed
     }
 
-    //Dynamically generate the output file name with ".hack" extension
+    //Dynamically generate the output file name with ".cln" extension
     fs::path inputPath(inputFilename);
     fs::path outputPath = inputPath.replace_extension(".cln");
     outputFile.open(outputPath);
@@ -80,7 +80,7 @@ Parser::Parser(const std::string& inputFilename) {
     inputFile.seekg(0);
     inputFile.close();
     inputFile.open(outputPath);
-    //create .hack ouputfile and set as output
+    //create .asm ouputfile and set as output
     outputFile.close();
     outputPath = inputPath.replace_extension(".asm");
     outputFile.open(outputPath);
@@ -166,6 +166,7 @@ int main(){
     bool hasMoreCommands = true;
 
     while(hasMoreCommands){
+        std::cout<<parser.commandType();
         parser.advance();
         hasMoreCommands = parser.hasMoreCommands();
     }
