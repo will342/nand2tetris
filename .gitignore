@@ -2,3 +2,8 @@
 .vscode/settings.json
 .vscode
 tools
+/solutions
+/.vs
+/projects/07/project 7 solution/x64/Debug
+/projects/07/project 7 solution
+/CppProperties.json
