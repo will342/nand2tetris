@@ -137,7 +137,7 @@ std::string Parser::symbol(){
 
 std::string Parser::dest(){
     Parser::commandTypes commandType = Parser::commandType();
-    if (commandType = C_COMMAND){
+    if (commandType == C_COMMAND){
         std::string dest = command.substr(0,command.find('='));
         return dest;
     }
@@ -146,7 +146,7 @@ std::string Parser::dest(){
 
 std::string Parser::comp(){
     Parser::commandTypes commandType = Parser::commandType();
-    if (commandType = C_COMMAND){
+    if (commandType == C_COMMAND){
         std::string comp = command.substr(command.find('=') + 1, command.find(';'));
         return comp;
     }
