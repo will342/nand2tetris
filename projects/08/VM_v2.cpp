@@ -92,53 +92,166 @@ void Writer::writeArithmetic(const std::string& command) {
 	// writes the assembly code that is the translation of the given arithmetic command
 
 	if (command == "add") {
-		outputFile << "@SP\n" << "M=M-1\n" << "A=M\n" << "D=M\n" << "@SP\n" << "M=M-1\n"
-		 			<< "A=M\n" << "D=D+M\n" << "@SP\n" << "A=M\n" << "M=D\n" << "@SP\n" << "M=M+1\n";
+		outputFile
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=M\n"
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=D+M\n"
+		<< "@SP\n"
+		<< "A=M\n"
+		<< "M=D\n"
+		<< "@SP\n"
+		<< "M=M+1\n";
 	}
 
 	if (command == "sub") {
-		outputFile << "@SP\n" << "M=M-1\n" << "A=M\n" << "D=M\n" << "@SP\n" << "M=M-1\n"
-		 			<< "A=M\n" << "D=M-D\n" << "@SP\n" << "A=M\n" << "M=D\n" << "@SP\n" << "M=M+1\n";
+		outputFile
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=M\n"
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=M-D\n"
+		<< "@SP\n"
+		<< "A=M\n"
+		<< "M=D\n"
+		<< "@SP\n"
+		<< "M=M+1\n";
 	}
 
 	if (command == "neg") {
-		outputFile << "@SP\n" << "M=M-1\n" << "A=M\n" << "M=-M\n" << "@SP\n" << "M=M+1\n";
+		outputFile
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "M=-M\n"
+		<< "@SP\n"
+		<< "M=M+1\n";
 	}
 
 	if (command == "eq") {
-		outputFile << "@SP\n" << "M=M-1\n" << "A=M\n" << "D=M\n" << "@SP\n" << "M=M-1\n"
-		 			<< "A=M\n" << "D=M-D\n" << "@SP\n" << "A=M\n" <<"M=0\n" << "@EQ_TRUE" << labelCounter << "\n" << "D;JEQ\n"
-					<<"@EQ_CONT" << labelCounter << "\n" << "0;JMP\n" << "(EQ_TRUE" << labelCounter << ")\n" << "@SP\n" << "A=M\n"
-					<< "M=-1\n" << "(EQ_CONT" << labelCounter << ")\n" << "@SP\n" << "M=M+1\n";
+		outputFile
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=M\n"
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=M-D\n"
+		<< "@SP\n"
+		<< "A=M\n"
+		<< "M=0\n"
+		<< "@EQ_TRUE" << labelCounter << "\n"
+		<< "D;JEQ\n"
+		<< "@EQ_CONT" << labelCounter << "\n"
+		<< "0;JMP\n"
+		<< "(EQ_TRUE" << labelCounter << ")\n"
+		<< "@SP\n"
+		<< "A=M\n"
+		<< "M=-1\n"
+		<< "(EQ_CONT" << labelCounter << ")\n"
+		<< "@SP\n"
+		<< "M=M+1\n";
 		labelCounter++;
 	}
 
 	if (command == "gt") {
-		outputFile << "@SP\n" << "M=M-1\n" << "A=M\n" << "D=M\n" << "@SP\n" << "M=M-1\n"
-					<< "A=M\n" << "D=M-D\n" << "@SP\n" << "A=M\n" <<"M=0\n"<< "@GT_TRUE" << labelCounter << "\n" << "D;JGT\n"
-					<< "@GT_CONT" << labelCounter << "\n" << "0;JMP\n" << "(GT_TRUE" << labelCounter << ")\n" << "@SP\n" << "A=M\n"
-					<< "M=-1\n" << "(GT_CONT" << labelCounter << ")\n" << "@SP\n" << "M=M+1\n";
+		outputFile
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=M\n"
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=M-D\n"
+		<< "@SP\n"
+		<< "A=M\n"
+		<< "M=0\n"
+		<< "@GT_TRUE" << labelCounter << "\n"
+		<< "D;JGT\n"
+		<< "@GT_CONT" << labelCounter << "\n"
+		<< "0;JMP\n"
+		<< "(GT_TRUE" << labelCounter << ")\n"
+		<< "@SP\n"
+		<< "A=M\n"
+		<< "M=-1\n"
+		<< "(GT_CONT" << labelCounter << ")\n"
+		<< "@SP\n"
+		<< "M=M+1\n";
 		labelCounter++;
 	}
 
 	if (command == "lt") {
-		outputFile << "@SP\n" << "M=M-1\n" << "A=M\n" << "D=M\n" << "@SP\n" << "M=M-1\n"
-					<< "A=M\n" << "D=M-D\n"<< "@SP\n" << "A=M\n" <<"M=0\n" << "@LT_TRUE" << labelCounter << "\n" << "D;JLT\n"
-					<< "@LT_CONT" << labelCounter << "\n" << "0;JMP\n" << "(LT_TRUE" << labelCounter << ")\n" << "@SP\n" << "A=M\n"
-					<< "M=-1\n" << "(LT_CONT" << labelCounter << ")\n" << "@SP\n" << "M=M+1\n";
+		outputFile
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=M\n"
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=M-D\n"
+		<< "@SP\n"
+		<< "A=M\n"
+		<< "M=0\n"
+		<< "@LT_TRUE" << labelCounter << "\n"
+		<< "D;JLT\n"
+		<< "@LT_CONT" << labelCounter << "\n"
+		<< "0;JMP\n"
+		<< "(LT_TRUE" << labelCounter << ")\n"
+		<< "@SP\n"
+		<< "A=M\n"
+		<< "M=-1\n"
+		<< "(LT_CONT" << labelCounter << ")\n"
+		<< "@SP\n"
+		<< "M=M+1\n";
 		labelCounter++;
 	}
 
 	if (command == "and") {
-		outputFile << "@SP\n" << "M=M-1\n" << "A=M\n" << "D=M\n" << "@SP\n" << "M=M-1\n"<< "A=M\n" << "M=D&M\n" << "@SP\n" << "M=M+1\n";
+		outputFile
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=M\n"
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "M=D&M\n"
+		<< "@SP\n"
+		<< "M=M+1\n";
 	}
 
 	if(command == "or") {
-		outputFile << "@SP\n" << "M=M-1\n" << "A=M\n" << "D=M\n" << "@SP\n" << "M=M-1\n"<< "A=M\n" << "M=D|M\n" << "@SP\n" << "M=M+1\n";
+		outputFile
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "D=M\n"
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "M=D|M\n"
+		<< "@SP\n"
+		<< "M=M+1\n";
 	}
 
 	if(command == "not"){
-		outputFile << "@SP\n" << "M=M-1\n" << "A=M\n" << "M=!M\n" << "@SP\n" << "M=M+1\n";
+		outputFile
+		<< "@SP\n"
+		<< "M=M-1\n"
+		<< "A=M\n"
+		<< "M=!M\n"
+		<< "@SP\n"
+		<< "M=M+1\n";
 	}
 }	
 
@@ -147,108 +260,115 @@ void Writer::writePushPop(Parser::commandTypes command, const std::string& segme
 
 	if (command == Parser::C_PUSH) {
 		if (segment == "constant"){
-			outputFile << "@" << index << "\n" << "D=A\n" << "@SP\n" << "A=M\n" << "M=D\n" << "@SP\n" << "M=M+1\n";
+			outputFile
+			<< "@" << index << "\n"
+			<< "D=A\n"
+			<< "@SP\n"
+			<< "A=M\n"
+			<< "M=D\n"
+			<< "@SP\n"
+			<< "M=M+1\n";
 		}
 
 		if (segment == "local") {
 			outputFile
 			<< "@" << index << "\n"
-			<< "D=A" << "\n"
-			<< "@LCL" << "\n"
-			<< "A=M" << "\n"
-			<< "A=A+D" << "\n"
-			<< "D=M" << "\n"
-			<< "@SP" << "\n"
-			<< "A=M" << "\n"
-			<< "M=D" << "\n"
-			<< "@SP" << "\n"
+			<< "D=A\n"
+			<< "@LCL\n"
+			<< "A=M\n"
+			<< "A=A+D\n"
+			<< "D=M\n"
+			<< "@SP\n"
+			<< "A=M\n"
+			<< "M=D\n"
+			<< "@SP\n"
 			<< "M=M+1\n";
 		}
 
 		if (segment == "argument") {
 			outputFile
 			<< "@" << index << "\n"
-			<< "D=A" << "\n"
-			<< "@ARG" << "\n"
-			<< "A=M" << "\n"
-			<< "A=A+D" << "\n"
-			<< "D=M" << "\n"
-			<< "@SP" << "\n"
-			<< "A=M" << "\n"
-			<< "M=D" << "\n"
-			<< "@SP" << "\n"
+			<< "D=A\n"
+			<< "@ARG\n"
+			<< "A=M\n"
+			<< "A=A+D\n"
+			<< "D=M\n"
+			<< "@SP\n"
+			<< "A=M\n"
+			<< "M=D\n"
+			<< "@SP\n"
 			<< "M=M+1\n";
 		}
 		
 		if (segment == "this") {
 			outputFile
 			<< "@" << index << "\n"
-			<< "D=A" << "\n"
-			<< "@THIS" << "\n"
-			<< "A=M" << "\n"
-			<< "A=A+D" << "\n"
-			<< "D=M" << "\n"
-			<< "@SP" << "\n"
-			<< "A=M" << "\n"
-			<< "M=D" << "\n"
-			<< "@SP" << "\n"
+			<< "D=A\n"
+			<< "@THIS\n"
+			<< "A=M\n"
+			<< "A=A+D\n"
+			<< "D=M\n"
+			<< "@SP\n"
+			<< "A=M\n"
+			<< "M=D\n"
+			<< "@SP\n"
 			<< "M=M+1\n";
 		}
 
 		if (segment == "that") {
 			outputFile
-			<< "@" << index << "\n"
-			<< "D=A" << "\n"
-			<< "@THAT" << "\n"
-			<< "A=M" << "\n"
-			<< "A=A+D" << "\n"
-			<< "D=M" << "\n"
-			<< "@SP" << "\n"
-			<< "A=M" << "\n"
-			<< "M=D" << "\n"
-			<< "@SP" << "\n"
+			<< "@\n" << index << "\n"
+			<< "D=A\n"
+			<< "@THAT\n"
+			<< "A=M\n"
+			<< "A=A+D\n"
+			<< "D=M\n"
+			<< "@SP\n"
+			<< "A=M\n"
+			<< "M=D\n"
+			<< "@SP\n"
 			<< "M=M+1\n";
 		}
 
 		if (segment == "temp") {
 			outputFile
 			<< "@" << index << "\n"
-			<< "D=A" << "\n"
-			<< "@5" << "\n"
-			<< "A=A+D" << "\n"
-			<< "D=M" << "\n"
-			<< "@SP" << "\n"
-			<< "A=M" << "\n"
-			<< "M=D" << "\n"
-			<< "@SP" << "\n"
+			<< "D=A\n"
+			<< "@5\n"
+			<< "A=A+D\n"
+			<< "D=M\n"
+			<< "@SP\n"
+			<< "A=M\n"
+			<< "M=D\n"
+			<< "@SP\n"
 			<< "M=M+1\n";
 		}
 
 		if (segment == "pointer") {
 			outputFile
 			<< "@" << index << "\n"
-			<< "D=A" << "\n"
-			<< "@3" << "\n"
-			<< "A=A+D" << "\n"
-			<< "D=M" << "\n"
-			<< "@SP" << "\n"
-			<< "A=M" << "\n"
-			<< "M=D" << "\n"
-			<< "@SP" << "\n"
+			<< "D=A\n"
+			<< "@3\n"
+			<< "A=A+D\n"
+			<< "D=M\n"
+			<< "@SP\n"
+			<< "A=M\n"
+			<< "M=D\n"
+			<< "@SP\n"
 			<< "M=M+1\n";
 		}
 
 		if (segment == "static") {
 			outputFile
 			<< "@" << index << "\n"
-			<< "D=A" << "\n"
-			<< "@16" << "\n"
-			<< "A=A+D" << "\n"
-			<< "D=M" << "\n"
-			<< "@SP" << "\n"
-			<< "A=M" << "\n"
-			<< "M=D" << "\n"
-			<< "@SP" << "\n"
+			<< "D=A\n"
+			<< "@16\n"
+			<< "A=A+D\n"
+			<< "D=M\n"
+			<< "@SP\n"
+			<< "A=M\n"
+			<< "M=D\n"
+			<< "@SP\n"
 			<< "M=M+1\n";
 		}
 	}	
@@ -269,7 +389,7 @@ void Writer::writePushPop(Parser::commandTypes command, const std::string& segme
 			<< "@R13\n"
 			<< "A=M\n"
 			<< "M=D\n";
-			}
+		}
 			
 		if (segment == "argument") {
 			outputFile
@@ -286,7 +406,7 @@ void Writer::writePushPop(Parser::commandTypes command, const std::string& segme
 			<< "@R13\n"
 			<< "A=M\n"
 			<< "M=D\n";
-			}
+		}
 
 		if (segment == "this") {
 			outputFile
@@ -303,7 +423,7 @@ void Writer::writePushPop(Parser::commandTypes command, const std::string& segme
 			<< "@R13\n"
 			<< "A=M\n"
 			<< "M=D\n";
-			}
+		}
 
 		if (segment == "that") {
 			outputFile
@@ -320,7 +440,7 @@ void Writer::writePushPop(Parser::commandTypes command, const std::string& segme
 			<< "@R13\n"
 			<< "A=M\n"
 			<< "M=D\n";
-			}
+		}
 
 		if (segment == "temp") {
 			outputFile
@@ -337,7 +457,7 @@ void Writer::writePushPop(Parser::commandTypes command, const std::string& segme
 			<< "@R13\n"
 			<< "A=M\n"
 			<< "M=D\n";
-			}
+		}
 
 		if (segment == "pointer") {
 			outputFile
@@ -354,7 +474,7 @@ void Writer::writePushPop(Parser::commandTypes command, const std::string& segme
 			<< "@R13\n"
 			<< "A=M\n"
 			<< "M=D\n";
-			}
+		}
 
 		if (segment == "static") {
 			outputFile
@@ -371,7 +491,7 @@ void Writer::writePushPop(Parser::commandTypes command, const std::string& segme
 			<< "@R13\n"
 			<< "A=M\n"
 			<< "M=D\n";
-			}
+		}
 	}
 }
 
@@ -386,17 +506,19 @@ void Writer::writeLabel(const std::string& label) {
 }
 
 void Writer::writeGoto(const std::string& label) {
-	outputFile <<"@"<<label<<"\n"
-			   <<"0;JMP"<<"\n";
+	outputFile
+	<<"@"<<label<<"\n"
+	<<"0;JMP\n";
 }
 
 void Writer::writeIf(const std::string& label) {
-	outputFile <<"@SP"<<"\n"
-	           <<"M=M-1"<<"\n"
-			   <<"A=M"<<"\n"
-			   <<"D=M"<<"\n"
-			   <<"@"<<label<<"\n"
-			   <<"D;JNE"<<"\n";
+	outputFile
+	<<"@SP\n"
+	<<"M=M-1\n"
+	<<"A=M\n"
+	<<"D=M\n"
+	<<"@"<<label<<"\n"
+	<<"D;JNE\n";
 }
 
 void Writer::writeCall(const std::string& functionName, int numArgs) {
@@ -419,18 +541,19 @@ void Writer::writeFunction(const std::string& functionName, int numLocals) {
 	//use sp to zero out k local variables
 	//write instructions as usual
 
-	outputFile <<"("<<functionName<<")\n" //write label
-			   <<"@0\n"	//set 0 for 2 local variables	
-			   <<"A=D\n"
-			   <<"@SP\n"
-			   <<"A=M\n"
-			   <<"M=D\n"
-			   <<"@SP\n"
-			   <<"M=M+1\n"
-			   <<"A=M\n"
-			   <<"M=D\n"
-			   <<"@SP\n"
-			   <<"M=M+1\n";
+	outputFile
+	<<"("<<functionName<<")\n" //write label
+	<<"@0\n"	//set 0 for 2 local variables	
+	<<"A=D\n"
+	<<"@SP\n"
+	<<"A=M\n"
+	<<"M=D\n"
+	<<"@SP\n"
+	<<"M=M+1\n"
+	<<"A=M\n"
+	<<"M=D\n"
+	<<"@SP\n"
+	<<"M=M+1\n";
 }
 
 Writer::~Writer() {
