@@ -522,38 +522,186 @@ void Writer::writeIf(const std::string& label) {
 }
 
 void Writer::writeCall(const std::string& functionName, int numArgs) {
-	//writes assembly code that effects the call command
-}
+	//calling a function functionName after numArgs have been pushed onto stack
 
-void Writer::writeReturn() {
-	//writes assembly code that effects the return command
-
-	
-}
-
-void Writer::writeFunction(const std::string& functionName, int numLocals) {
-	//writes assembly code that effects the function command f k
-	//declare a label for function entry f
-	//k = num of local variables
-	//initialize all local variables to 0
-
-	//set sp to match LCL
-	//use sp to zero out k local variables
-	//write instructions as usual
+	/*
+	declare return-address label
+	push return-address
+	push LCL
+	push ARG
+	push THIS
+	push THAT
+	ARG = SP - numARgs - 5
+	LCL = SP
+	goto functionName
+	*/
 
 	outputFile
-	<<"("<<functionName<<")\n" //write label
-	<<"@0\n"	//set 0 for 2 local variables	
-	<<"A=D\n"
+	//push return address to stack
+	<<"@return-address"<<labelCounter<<"\n"
+	<<"D=A\n"
 	<<"@SP\n"
 	<<"A=M\n"
 	<<"M=D\n"
 	<<"@SP\n"
 	<<"M=M+1\n"
+	//push LCL
+	<<"@LCL\n"
+	<<"D=M\n"
+	<<"@SP\n"
 	<<"A=M\n"
 	<<"M=D\n"
 	<<"@SP\n"
-	<<"M=M+1\n";
+	<<"M=M+1\n"
+	//push ARG
+	<<"@ARG\n"
+	<<"D=M\n"
+	<<"@SP\n"
+	<<"A=M\n"
+	<<"M=D\n"
+	<<"@SP\n"
+	<<"M=M+1\n"
+	//push THIS
+	<<"@THIS\n"
+	<<"D=M\n"
+	<<"@SP\n"
+	<<"A=M\n"
+	<<"M=D\n"
+	<<"@SP\n"
+	<<"M=M+1\n"
+	//push THAT
+	<<"@THAT\n"
+	<<"D=M\n"
+	<<"@SP\n"
+	<<"A=M\n"
+	<<"M=D\n"
+	<<"@SP\n"
+	<<"M=M+1\n"
+	//ARG = SP - numARgs - 5
+	<<"@SP\n"
+	<<"D=M\n"
+	<<"@"<<numArgs<<"\n"
+	<<"D=D-A\n"
+	<<"@5\n"
+	<<"D=D-A\n"
+	<<"@ARG\n"
+	<<"M=D\n"
+	//LCL = SP
+	<<"@SP\n"
+	<<"D=M\n"
+	<<"@LCL\n"
+	<<"M=D\n"
+	//goto functionname
+	//declare return-address
+
+	labelCounter++;
+}
+
+void Writer::writeReturn() {
+	//writes assembly code that effects the return command
+
+	/*
+	frame = lcl 			 //frame is a temp variable
+	ret = value of frame -5  //puts the return address into a temp var
+	value of arg [0] = pop()  //reposition the return value for the caller
+	SP = ARG+1				 //restore SP
+	that = value of frame -1 //restore that
+	this = value of frame -2 //restore this
+	arg = value of frame - 3 //restore arg
+	lcl = value of frame -4	 //restore lcl
+	goto ret				 //goto return-address
+	*/
+	
+	outputFile
+	//R13 (temp) = LCL - 5
+	<<"@LCL\n"
+	<<"D=M\n"
+	<<"@5\n"
+	<<"D=D-A\n"	
+	<<"@R13\n"
+	<<"M=D\n"
+	//put return address into R14
+	<<"@R14\n"
+	<<"M=D\n"
+	//pop and put value to arg[0]
+	<<"@SP\n"
+	<<"M=M-1\n"
+	<<"A=M\n"
+	<<"D=M\n"
+	<<"@ARG\n"
+	<<"A=M\n"
+	<<"M=D\n"
+	//restore SP to SP = ARG+1
+	<<"@ARG\n"
+	<<"D=M\n"
+	<<"@SP\n"
+	<<"M=D\n"
+	<<"M=M+1\n"
+	//restore LCL
+	<<"@R13\n"
+	<<"M=M+1\n"
+	<<"A=M\n" 
+	<<"D=M\n"
+	<<"@LCL\n"
+	<<"M=D\n"
+	//restore arg
+	<<"@R13\n"
+	<<"M=M+1\n" 
+	<<"A=M\n" 
+	<<"D=M\n"
+	<<"@ARG\n"
+	<<"M=D\n"
+	//restore this
+	<<"@R13\n"
+	<<"M=M+1\n" 
+	<<"A=M\n" 
+	<<"D=M\n"
+	<<"@THIS\n"
+	<<"M=D\n"
+	//restore that
+	<<"@R13\n"
+	<<"M=M+1\n" 
+	<<"A=M\n" 
+	<<"D=M\n"
+	<<"@THAT\n"
+	<<"M=D\n"
+	//gotoreturn address
+	<<"@R14\n"
+	<<"A=M\n"
+	<<"0;JMP\n";
+}
+
+void Writer::writeFunction(const std::string& functionName, int numLocals) {
+	//writes function label
+	//sets 0 to local memory addresses specified by numLocals
+
+	//write label
+	outputFile <<"("<<functionName<<")\n"
+	//write num locals (k) to temp (R13)
+	<<"@"<<numLocals<<"\n"
+	<<"D=A\n"
+	<<"@R13\n"
+	<<"M=D\n"
+	//skip loop if k = 0
+	<<"@skipLoop"<<labelCounter<<"\n"
+	<<"D;JEQ\n"
+	//loop to set 0 for k local variables
+	<<"(zeroLocals"<<labelCounter<<")\n"
+	<<"@0\n"	
+	<<"D=A\n"
+	<<"@SP\n"
+	<<"A=M\n"
+	<<"M=D\n"
+	<<"@SP\n"
+	<<"M=M+1\n"
+	<<"@R13\n"
+	<<"M=M-1\n"
+	<<"D=M\n"
+	<<"@zeroLocals"<<labelCounter<<"\n"
+	<<"D;JGT\n"
+	//end program
+	<<"(skipLoop"<<labelCounter<<")\n";
+	labelCounter++;
 }
 
 Writer::~Writer() {
@@ -690,6 +838,10 @@ int main() {
 
 		if(parser.commandType() == Parser::C_FUNCTION){
 			writer.writeFunction(parser.arg1(), parser.arg2());
+		}
+
+		if(parser.commandType() == Parser::C_RETURN){
+			writer.writeReturn();
 		}
 	}
 	
