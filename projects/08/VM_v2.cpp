@@ -391,7 +391,12 @@ void Writer::writeGoto(const std::string& label) {
 }
 
 void Writer::writeIf(const std::string& label) {
-	//writes assembly code that effects the if-goto command
+	outputFile <<"@SP"<<"\n"
+	           <<"M=M-1"<<"\n"
+			   <<"A=M"<<"\n"
+			   <<"D=M"<<"\n"
+			   <<"@"<<label<<"\n"
+			   <<"D;JNE"<<"\n";
 }
 
 void Writer::writeCall(const std::string& functionName, int numArgs) {
@@ -400,10 +405,32 @@ void Writer::writeCall(const std::string& functionName, int numArgs) {
 
 void Writer::writeReturn() {
 	//writes assembly code that effects the return command
+
+	
 }
 
 void Writer::writeFunction(const std::string& functionName, int numLocals) {
-	//writes assembly code that effects the function command
+	//writes assembly code that effects the function command f k
+	//declare a label for function entry f
+	//k = num of local variables
+	//initialize all local variables to 0
+
+	//set sp to match LCL
+	//use sp to zero out k local variables
+	//write instructions as usual
+
+	outputFile <<"("<<functionName<<")\n" //write label
+			   <<"@0\n"	//set 0 for 2 local variables	
+			   <<"A=D\n"
+			   <<"@SP\n"
+			   <<"A=M\n"
+			   <<"M=D\n"
+			   <<"@SP\n"
+			   <<"M=M+1\n"
+			   <<"A=M\n"
+			   <<"M=D\n"
+			   <<"@SP\n"
+			   <<"M=M+1\n";
 }
 
 Writer::~Writer() {
@@ -507,7 +534,7 @@ const int Parser::arg2() {
 
 
 int main() {
-	const std::string& vmFile = "ProgramFlow/BasicLoop/BasicLoop.vm";
+	const std::string& vmFile = "FunctionCalls/SimpleFunction/SimpleFunction.vm";
 
 	Parser parser(vmFile);
 
@@ -529,15 +556,24 @@ int main() {
 		if (parser.commandType() == Parser::C_LABEL) {
 			writer.writeLabel(parser.arg1());
 		}
+
+		if (parser.commandType() == Parser::C_GOTO){
+			writer.writeGoto(parser.arg1());
+		}
+
+		if(parser.commandType() == Parser::C_IF){
+			writer.writeIf(parser.arg1());
+		}
+
+		if(parser.commandType() == Parser::C_FUNCTION){
+			writer.writeFunction(parser.arg1(), parser.arg2());
+		}
 	}
 	
 	return 0;
 }
 
-/* 
-stage 1
-implement program flow commands: label, goto, and if-goto commands
-
+/*
 stage 2
 implement function calling commands with call, return, and function commands
 */
