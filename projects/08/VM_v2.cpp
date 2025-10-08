@@ -62,6 +62,7 @@ class Writer {
 	public:
 	std::ofstream outputFile;
 	int labelCounter = 1;
+	std::string filePrefix;
 
 	Writer(const std::string& inputFilename); 
 	void writeArithmetic(const std::string& command); 
@@ -73,19 +74,23 @@ class Writer {
 	void writeCall(const std::string& functionName, int numArgs);
 	void writeReturn();
 	void writeFunction(const std::string& functionName, int numLocals);
+	void setFilePrefix(const std::string& prefix);
 	~Writer(); 
 };
 
 Writer::Writer(const std::string& inputFilename) {
-	// opens the output file/stream and gets ready to write
-	std::filesystem::path inputPath(inputFilename);
-    std::filesystem::path outputPath = inputPath.replace_extension(".asm");
+    std::filesystem::path inputPath(inputFilename);
+
+    // Keep the folder the same as the VM file
+    std::filesystem::path outputPath = inputPath.parent_path() / (inputPath.parent_path().filename().string() + ".asm");
+
+    // Store prefix for labels
+    filePrefix = inputPath.parent_path().filename().string();
+
     outputFile.open(outputPath);
     if (!outputFile.is_open()) {
-    	std::cerr << "Error opening output file: " << outputPath << std::endl;
-        //Handle error as needed
+        std::cerr << "Error opening output file: " << outputPath << std::endl;
     }
-
 }
 
 void Writer::writeArithmetic(const std::string& command) {
@@ -360,10 +365,7 @@ void Writer::writePushPop(Parser::commandTypes command, const std::string& segme
 
 		if (segment == "static") {
 			outputFile
-			<< "@" << index << "\n"
-			<< "D=A\n"
-			<< "@16\n"
-			<< "A=A+D\n"
+			<< "@" << filePrefix << "." << index << "\n"
 			<< "D=M\n"
 			<< "@SP\n"
 			<< "A=M\n"
@@ -478,19 +480,12 @@ void Writer::writePushPop(Parser::commandTypes command, const std::string& segme
 
 		if (segment == "static") {
 			outputFile
-			<< "@" << index << "\n"
-			<< "D=A\n"
-			<< "@16\n"
-			<< "D=D+A\n"
-			<< "@R13\n"
-			<< "M=D\n"
 			<< "@SP\n"
-			<< "M=M-1\n"
+			<< "M=M-1\n"                     
 			<< "A=M\n"
-			<< "D=M\n"
-			<< "@R13\n"
-			<< "A=M\n"
-			<< "M=D\n";
+			<< "D=M\n"                        
+			<< "@" << filePrefix << "." << index << "\n"
+			<< "M=D\n";                       
 		}
 	}
 }
@@ -499,6 +494,15 @@ void Writer::writeInit() {
 	//writes the assembly code that effects the VM initialization, also called bootstrap code
 	//bootstrap code must be placed at the beginning of the output file
 	//bootstrap code must call Sys.init function
+
+	outputFile
+	//set SP=256
+	<<"@256\n"
+	<<"D=A\n"
+	<<"@SP\n"
+	<<"M=D\n";
+	//call Sys.init0
+	this->writeCall("Sys.init",0);
 }
 
 void Writer::writeLabel(const std::string& label) {
@@ -538,7 +542,7 @@ void Writer::writeCall(const std::string& functionName, int numArgs) {
 
 	outputFile
 	//push return address to stack
-	<<"@return-address"<<labelCounter<<"\n"
+	<<"@" << functionName << "$ret." << labelCounter << "\n"
 	<<"D=A\n"
 	<<"@SP\n"
 	<<"A=M\n"
@@ -577,7 +581,7 @@ void Writer::writeCall(const std::string& functionName, int numArgs) {
 	<<"M=D\n"
 	<<"@SP\n"
 	<<"M=M+1\n"
-	//ARG = SP - numARgs - 5
+	//ARG = SP - numArgs - 5
 	<<"@SP\n"
 	<<"D=M\n"
 	<<"@"<<numArgs<<"\n"
@@ -592,8 +596,10 @@ void Writer::writeCall(const std::string& functionName, int numArgs) {
 	<<"@LCL\n"
 	<<"M=D\n"
 	//goto functionname
+	<<"@"<<functionName<<"\n"
+	<<"0;JMP\n"
 	//declare return-address
-
+	"(" << functionName << "$ret." << labelCounter << ")\n";
 	labelCounter++;
 }
 
@@ -613,16 +619,18 @@ void Writer::writeReturn() {
 	*/
 	
 	outputFile
-	//R13 (temp) = LCL - 5
-	<<"@LCL\n"
-	<<"D=M\n"
-	<<"@5\n"
-	<<"D=D-A\n"	
-	<<"@R13\n"
-	<<"M=D\n"
-	//put return address into R14
-	<<"@R14\n"
-	<<"M=D\n"
+	// Compute (LCL - 5) and store that address in R13
+    <<"@LCL\n"
+    <<"D=M\n"
+    <<"@5\n"
+    <<"D=D-A\n"
+    <<"@R13\n"
+    <<"M=D\n"
+	// Save return address *(LCL - 5) into R14
+    <<"A=D\n"         
+    <<"D=M\n"
+    <<"@R14\n"
+    <<"M=D\n"
 	//pop and put value to arg[0]
 	<<"@SP\n"
 	<<"M=M-1\n"
@@ -702,6 +710,10 @@ void Writer::writeFunction(const std::string& functionName, int numLocals) {
 	//end program
 	<<"(skipLoop"<<labelCounter<<")\n";
 	labelCounter++;
+}
+
+void Writer::setFilePrefix(const std::string& prefix) {
+    filePrefix = prefix;
 }
 
 Writer::~Writer() {
@@ -805,50 +817,68 @@ const int Parser::arg2() {
 
 
 int main() {
-	const std::string& vmFile = "FunctionCalls/SimpleFunction/SimpleFunction.vm";
+	const std::string& folder = "FunctionCalls/StaticsTest";
+	const std::string& output = folder + "/StaticsTest.asm";
+	std::vector<std::string> vmFiles;
 
-	Parser parser(vmFile);
-
-	Writer writer(vmFile);
-
-	while (parser.hasMoreCommands()) {
-		//parser actions
-		parser.advance();
-
-		//writer actions
-		if (parser.isPushPop()) {
-			writer.writePushPop(parser.commandType(), parser.arg1(), parser.arg2());
-		}
-
-		if (parser.commandType() == Parser::C_ARITHMETIC) {
-			writer.writeArithmetic(parser.currentCommand);
-		}
-
-		if (parser.commandType() == Parser::C_LABEL) {
-			writer.writeLabel(parser.arg1());
-		}
-
-		if (parser.commandType() == Parser::C_GOTO){
-			writer.writeGoto(parser.arg1());
-		}
-
-		if(parser.commandType() == Parser::C_IF){
-			writer.writeIf(parser.arg1());
-		}
-
-		if(parser.commandType() == Parser::C_FUNCTION){
-			writer.writeFunction(parser.arg1(), parser.arg2());
-		}
-
-		if(parser.commandType() == Parser::C_RETURN){
-			writer.writeReturn();
+	//generate list of VM files in folder
+	for(const auto& entry : std::filesystem::directory_iterator(folder)){
+		if(entry.is_regular_file() && entry.path().extension() == ".vm"){
+			vmFiles.push_back(entry.path().string());
 		}
 	}
 	
+	//put Sys.VM as first element in vmFiles vector
+	auto it = std::find_if(vmFiles.begin(), vmFiles.end(),
+						[](const std::string& s){ return s.find("Sys.vm") != std::string::npos; });
+	if(it != vmFiles.end()) {
+		std::swap(*it, vmFiles[0]);  
+	}
+
+	Writer writer(vmFiles.front());
+	writer.writeInit();
+
+	for (const auto& element : vmFiles) {
+		Parser parser(element);
+		writer.setFilePrefix(std::filesystem::path(element).stem().string());
+		while (parser.hasMoreCommands()) {
+			//parser actions
+			parser.advance();
+
+			//writer actions
+			if (parser.isPushPop()) {
+				writer.writePushPop(parser.commandType(), parser.arg1(), parser.arg2());
+			}
+
+			if (parser.commandType() == Parser::C_ARITHMETIC) {
+				writer.writeArithmetic(parser.currentCommand);
+			}
+
+			if (parser.commandType() == Parser::C_LABEL) {
+				writer.writeLabel(parser.arg1());
+			}
+
+			if (parser.commandType() == Parser::C_GOTO){
+				writer.writeGoto(parser.arg1());
+			}
+
+			if(parser.commandType() == Parser::C_IF){
+				writer.writeIf(parser.arg1());
+			}
+
+			if(parser.commandType() == Parser::C_FUNCTION){
+				writer.writeFunction(parser.arg1(), parser.arg2());
+			}
+
+			if(parser.commandType() == Parser::C_RETURN){
+				writer.writeReturn();
+			}
+
+			if(parser.commandType() == Parser::C_CALL){
+				writer.writeCall(parser.arg1(), parser.arg2());
+			}
+		}
+	}
+
 	return 0;
 }
-
-/*
-stage 2
-implement function calling commands with call, return, and function commands
-*/
