@@ -1,0 +1,19 @@
+Windows
+1. Copy all files from tools/OS into project directory
+2. Copy bin folder from tools into project directory 
+3. In command line run: JackCompiler.bat
+4. Open project folder in VM emulator
+
+WSL
+1. Copy all files from tools/OS into project directory
+2. Copy bin folder from tools into project directory
+3. If first time using compiler and emulator:
+    -Install Java: java -version
+    -Install dos2unix: sudo apt install dos2unix
+    -Convert compiler: dos2unix JackCompiler.sh
+    -Convert emulator: dos2unix VMEmulator.sh
+    -Give permission to compiler: chmod +x JackCompiler.sh
+    -Give persmission to emulator: chmod +x VMEmulator.sh
+4. Compile: ./JackCompiler.sh (will convert everything in the directory by default)
+5. Run emulator: ./VMEmulator.sh
+6. Open project folder in emulator

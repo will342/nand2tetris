@@ -1,0 +1,80 @@
+/** Implements the snake game */
+
+
+class SnakeGame {
+    field Snake snake;
+    field int direction; // the snakes's current direction: 
+                        // 0=none, 1=up, 2=down, 3=left, 4=right
+    field boolean gameOverFlag;
+
+    constructor SnakeGame new(){
+
+        do Screen.setColor(true);
+
+        //draw border
+        do Screen.drawLine(0, 0, 511, 0);     // top border
+        do Screen.drawLine(0, 255, 511, 255); // bottom border
+        do Screen.drawLine(0, 0, 0, 255);     // left border
+        do Screen.drawLine(511, 0, 511, 255); // right border
+    
+        //create snake with length = 1 in the middle of the screen
+
+        let snake = Snake.new();
+        
+        let gameOverFlag = false;
+
+        return this;
+    }
+
+    method void moveSnake() {
+      if (direction = 1) { do snake.moveUp(); }
+      if (direction = 2) { do snake.moveDown(); }
+      if (direction = 3) { do snake.moveLeft(); }
+      if (direction = 4) { do snake.moveRight(); }
+      do Sys.wait(5);  // delays the next movement
+      return;
+   }
+
+
+   method void run() {
+      var char key;  // the key currently pressed by the user
+      var boolean exit;
+      let exit = false;
+      
+      while (~exit & ~gameOverFlag) {
+         // waits for a key to be pressed
+         while (key = 0) {
+            let key = Keyboard.keyPressed();
+            do moveSnake();
+            do gameOver();
+         }
+
+         if (key = 140)  { let exit = true; }     //esc key
+         if (key = 131) { let direction = 1; }   // up arrow
+         if (key = 133) { let direction = 2; }   // down arrow
+         if (key = 130) { let direction = 3; }   // left arrow
+         if (key = 132) { let direction = 4; }   // right arrow
+
+         // waits for the key to be released
+         while (~(key = 0)) {
+            let key = Keyboard.keyPressed();
+            do moveSnake();
+            do gameOver();
+         }
+     }
+     return;
+   }
+
+   method void gameOver() {
+    /* checks if snake hits wall
+       will need to create methods in snake class to send x and y coords 
+    */   
+   }
+
+   
+
+    method void dispose() {
+      return;
+   }
+}
+

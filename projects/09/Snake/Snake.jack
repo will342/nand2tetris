@@ -1,0 +1,66 @@
+/** Implements a graphical snake.
+    The snake has top-left x and y coordinates, and a size. */
+
+class Snake {
+    field int length;
+    field int size;
+    field int x , y;
+
+    /** creates new snake of length 1 in the middle of the screen */
+    constructor Snake new(){
+        let length = 1;
+        let size = 8;
+        let x = 250;
+        let y = 125;
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x,y,x+size,y+size);
+        return this;
+    }
+
+    method void moveUp(){
+      if (y > 1) {
+         // Erases the bottom two rows of this square in its current location
+         do Screen.setColor(false);
+         do Screen.drawRectangle(x, (y + size) - 1, x + size, y + size);
+         let y = y - 1;
+         // Draws the top two rows of this square in its new location
+         do Screen.setColor(true);
+         do Screen.drawRectangle(x, y, x + size, y + 1);
+      }
+      return;
+   }
+
+
+    method void moveDown(){
+      if ((y + size) < 254) {
+         do Screen.setColor(false);
+         do Screen.drawRectangle(x, y, x + size, y + 1);
+         let y = y + 1;
+         do Screen.setColor(true);
+         do Screen.drawRectangle(x, (y + size) - 1, x + size, y + size);
+      }
+      return;
+    }
+
+    method void moveLeft(){
+      if (x > 1) {
+         do Screen.setColor(false);
+         do Screen.drawRectangle((x + size) - 1, y, x + size, y + size);
+         let x = x - 1;
+         do Screen.setColor(true);
+         do Screen.drawRectangle(x, y, x + 1, y + size);
+      }
+      return;
+    }
+
+    method void moveRight(){
+      if ((x + size) < 510) {
+         do Screen.setColor(false);
+         do Screen.drawRectangle(x, y, x + 1, y + size);
+         let x = x + 1;
+         do Screen.setColor(true);
+         do Screen.drawRectangle((x + size) - 1, y, x + size, y + size);
+      }
+      return;
+    }
+}
