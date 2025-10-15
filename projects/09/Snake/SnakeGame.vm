@@ -1,0 +1,347 @@
+function SnakeGame.new 0
+push constant 4
+call Memory.alloc 1
+pop pointer 0
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push constant 0
+push constant 0
+push constant 511
+push constant 0
+call Screen.drawLine 4
+pop temp 0
+push constant 0
+push constant 255
+push constant 511
+push constant 255
+call Screen.drawLine 4
+pop temp 0
+push constant 0
+push constant 0
+push constant 0
+push constant 255
+call Screen.drawLine 4
+pop temp 0
+push constant 511
+push constant 0
+push constant 511
+push constant 255
+call Screen.drawLine 4
+pop temp 0
+push constant 250
+push constant 125
+push constant 8
+push constant 1
+call Snake.new 4
+pop this 0
+push constant 125
+push constant 200
+push constant 4
+call Food.new 3
+pop this 1
+push constant 0
+pop this 3
+push pointer 0
+return
+function SnakeGame.moveSnake 0
+push argument 0
+pop pointer 0
+push this 2
+push constant 1
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 0
+call Snake.moveUp 1
+pop temp 0
+label IF_FALSE0
+push this 2
+push constant 2
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push this 0
+call Snake.moveDown 1
+pop temp 0
+label IF_FALSE1
+push this 2
+push constant 3
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push this 0
+call Snake.moveLeft 1
+pop temp 0
+label IF_FALSE2
+push this 2
+push constant 4
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push this 0
+call Snake.moveRight 1
+pop temp 0
+label IF_FALSE3
+push constant 5
+call Sys.wait 1
+pop temp 0
+push constant 0
+return
+function SnakeGame.run 2
+push argument 0
+pop pointer 0
+push constant 0
+pop local 1
+label WHILE_EXP0
+push local 1
+not
+push this 3
+not
+and
+not
+if-goto WHILE_END0
+push pointer 0
+call SnakeGame.gameOver 1
+pop temp 0
+label WHILE_EXP1
+push local 0
+push constant 0
+eq
+push this 3
+not
+and
+not
+if-goto WHILE_END1
+call Keyboard.keyPressed 0
+pop local 0
+push pointer 0
+call SnakeGame.moveSnake 1
+pop temp 0
+push pointer 0
+call SnakeGame.gameOver 1
+pop temp 0
+goto WHILE_EXP1
+label WHILE_END1
+push local 0
+push constant 140
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+not
+pop local 1
+label IF_FALSE0
+push local 0
+push constant 131
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 1
+pop this 2
+label IF_FALSE1
+push local 0
+push constant 133
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push constant 2
+pop this 2
+label IF_FALSE2
+push local 0
+push constant 130
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push constant 3
+pop this 2
+label IF_FALSE3
+push local 0
+push constant 132
+eq
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push constant 4
+pop this 2
+label IF_FALSE4
+label WHILE_EXP2
+push local 0
+push constant 0
+eq
+not
+push this 3
+not
+and
+not
+if-goto WHILE_END2
+call Keyboard.keyPressed 0
+pop local 0
+push pointer 0
+call SnakeGame.moveSnake 1
+pop temp 0
+push pointer 0
+call SnakeGame.gameOver 1
+pop temp 0
+goto WHILE_EXP2
+label WHILE_END2
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+push constant 0
+call Output.moveCursor 2
+pop temp 0
+push constant 10
+call String.new 1
+push constant 71
+call String.appendChar 2
+push constant 65
+call String.appendChar 2
+push constant 77
+call String.appendChar 2
+push constant 69
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 79
+call String.appendChar 2
+push constant 86
+call String.appendChar 2
+push constant 69
+call String.appendChar 2
+push constant 82
+call String.appendChar 2
+push constant 33
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+push constant 0
+return
+function SnakeGame.gameOver 0
+push argument 0
+pop pointer 0
+push this 0
+call Snake.getX 1
+push this 0
+call Snake.getSize 1
+add
+push constant 510
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+not
+pop this 3
+label IF_FALSE0
+push this 0
+call Snake.getX 1
+push constant 2
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 0
+not
+pop this 3
+label IF_FALSE1
+push this 0
+call Snake.getY 1
+push this 0
+call Snake.getSize 1
+add
+push constant 254
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push constant 0
+not
+pop this 3
+label IF_FALSE2
+push this 0
+call Snake.getY 1
+push constant 2
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push constant 0
+not
+pop this 3
+label IF_FALSE3
+push this 0
+call Snake.getX 1
+push this 1
+call Food.getFoodX 1
+lt
+push this 1
+call Food.getFoodSize 1
+add
+push this 0
+call Snake.getX 1
+push this 0
+call Snake.getSize 1
+add
+push this 1
+call Food.getFoodX 1
+gt
+and
+push this 0
+call Snake.getY 1
+push this 1
+call Food.getFoodY 1
+lt
+push this 1
+call Food.getFoodSize 1
+add
+and
+push this 0
+call Snake.getY 1
+push this 0
+call Snake.getSize 1
+add
+push this 1
+call Food.getFoodY 1
+gt
+and
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push this 1
+call Food.erase 1
+pop temp 0
+push this 0
+call Snake.grow 1
+pop temp 0
+push constant 0
+push constant 0
+call Output.moveCursor 2
+pop temp 0
+push constant 3
+call String.new 1
+push constant 89
+call String.appendChar 2
+push constant 85
+call String.appendChar 2
+push constant 77
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+label IF_FALSE4
+push constant 0
+return
+function SnakeGame.dispose 0
+push argument 0
+pop pointer 0
+push constant 0
+return

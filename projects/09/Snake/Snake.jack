@@ -7,11 +7,11 @@ class Snake {
     field int x , y;
 
     /** creates new snake of length 1 in the middle of the screen */
-    constructor Snake new(){
-        let length = 1;
-        let size = 8;
-        let x = 250;
-        let y = 125;
+    constructor Snake new(int ax, int ay, int asize, int alength){
+        let length = alength;
+        let size = asize;
+        let x = ax;
+        let y = ay;
         do Screen.setColor(true);
         do Screen.drawRectangle(x,y,x+size,y+size);
         return this;
@@ -61,6 +61,23 @@ class Snake {
          do Screen.setColor(true);
          do Screen.drawRectangle((x + size) - 1, y, x + size, y + size);
       }
+      return;
+    }
+
+    method int getX(){
+      return x;
+    }
+
+    method int getY(){
+      return y;
+    }
+
+    method int getSize(){
+      return size;
+    }
+
+    method void grow(){
+      let length = length + 1;
       return;
     }
 }

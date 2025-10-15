@@ -3,6 +3,7 @@
 
 class SnakeGame {
     field Snake snake;
+    field Food food;
     field int direction; // the snakes's current direction: 
                         // 0=none, 1=up, 2=down, 3=left, 4=right
     field boolean gameOverFlag;
@@ -17,9 +18,11 @@ class SnakeGame {
         do Screen.drawLine(0, 0, 0, 255);     // left border
         do Screen.drawLine(511, 0, 511, 255); // right border
     
-        //create snake with length = 1 in the middle of the screen
+        //create snake at x = 250, y = 125, size = 8, length = 1
+        let snake = Snake.new(250,125,8,1);
 
-        let snake = Snake.new();
+        //create food at x = 125, y = 200, size = 4
+        let food = Food.new(125, 200, 4);
         
         let gameOverFlag = false;
 
@@ -42,33 +45,53 @@ class SnakeGame {
       let exit = false;
       
       while (~exit & ~gameOverFlag) {
+         do gameOver();
          // waits for a key to be pressed
-         while (key = 0) {
+         while ((key = 0) & ~gameOverFlag) {
             let key = Keyboard.keyPressed();
             do moveSnake();
             do gameOver();
          }
 
-         if (key = 140)  { let exit = true; }     //esc key
+         if (key = 140) { let exit = true; }     //esc key
          if (key = 131) { let direction = 1; }   // up arrow
          if (key = 133) { let direction = 2; }   // down arrow
          if (key = 130) { let direction = 3; }   // left arrow
          if (key = 132) { let direction = 4; }   // right arrow
 
          // waits for the key to be released
-         while (~(key = 0)) {
+         while (~(key = 0) & ~gameOverFlag) {
             let key = Keyboard.keyPressed();
             do moveSnake();
             do gameOver();
          }
      }
+
+     do Output.moveCursor(0,0);
+     do Output.printString("GAME OVER!");
      return;
    }
 
    method void gameOver() {
-    /* checks if snake hits wall
-       will need to create methods in snake class to send x and y coords 
-    */   
+
+      /** Checks for collision against walls */
+      if (snake.getX() + snake.getSize() = 510)  {let gameOverFlag = true;} 
+      if (snake.getX() = 2)                      {let gameOverFlag = true;} 
+      if (snake.getY() + snake.getSize() = 254)  {let gameOverFlag = true;}
+      if (snake.getY() = 2)                      {let gameOverFlag = true;}
+
+      if ((snake.getX() < food.getFoodX() + food.getFoodSize()) &
+         (snake.getX() + snake.getSize() > food.getFoodX()) &
+         (snake.getY() < food.getFoodY() + food.getFoodSize()) &
+         (snake.getY() + snake.getSize() > food.getFoodY())) {
+
+         do food.erase();
+         do snake.grow();
+         do Output.moveCursor(0,0);
+         do Output.printString("YUM");
+      }
+
+    return;
    }
 
    
