@@ -1,83 +1,109 @@
-/** Implements a graphical snake.
-    The snake has top-left x and y coordinates, and a size. */
-
+/** Implements a graphical snake with logical coordinates for collision */
 class Snake {
     field int length;
     field int size;
-    field int x , y;
+    field int x, y;           // visual coordinates (for drawing)
+    field int logicalX, logicalY; // logical coordinates (for game logic)
+    field Array posArr;
+    field boolean eaten;
 
     /** creates new snake of length 1 in the middle of the screen */
     constructor Snake new(int ax, int ay, int asize, int alength){
+        let posArr = Array.new(20);
         let length = alength;
         let size = asize;
+
+        let logicalX = ax;
+        let logicalY = ay;
+
         let x = ax;
         let y = ay;
+
+        let posArr[0] = x;
+        let posArr[1] = y;
+
+        let eaten = false;
+
         do Screen.setColor(true);
-        do Screen.drawRectangle(x,y,x+size,y+size);
+        do Screen.drawRectangle(x, y, x + size, y + size);
         return this;
     }
 
-    method void moveUp(){
-      if (y > 1) {
-         // Erases the bottom two rows of this square in its current location
-         do Screen.setColor(false);
-         do Screen.drawRectangle(x, (y + size) - 1, x + size, y + size);
-         let y = y - 1;
-         // Draws the top two rows of this square in its new location
-         do Screen.setColor(true);
-         do Screen.drawRectangle(x, y, x + size, y + 1);
-      }
-      return;
-   }
+    method void updatePos(int newX, int newY){
+        var int i;
+        let i = 19;
+        while (i > 1) {
+            let posArr[i] = posArr[i-2];
+            let posArr[i-1] = posArr[i-3];
+            let i = i - 2;
+        }
+        let posArr[1] = newY;
+        let posArr[0] = newX;
+        return;
+    }
 
-
-    method void moveDown(){
-      if ((y + size) < 254) {
-         do Screen.setColor(false);
-         do Screen.drawRectangle(x, y, x + size, y + 1);
-         let y = y + 1;
-         do Screen.setColor(true);
-         do Screen.drawRectangle(x, (y + size) - 1, x + size, y + size);
-      }
+    /** Move by one pixel in each direction */
+    method void moveUp() {
+        if (logicalY > 0) {
+            let logicalY = logicalY - 1;
+            do drawAtLogical();
+        }
       return;
     }
 
-    method void moveLeft(){
-      if (x > 1) {
-         do Screen.setColor(false);
-         do Screen.drawRectangle((x + size) - 1, y, x + size, y + size);
-         let x = x - 1;
-         do Screen.setColor(true);
-         do Screen.drawRectangle(x, y, x + 1, y + size);
-      }
-      return;
+    method void moveDown() {
+        if (logicalY + size < 255) {
+            let logicalY = logicalY + 1;
+            do drawAtLogical();
+        }
+      return;  
     }
 
-    method void moveRight(){
-      if ((x + size) < 510) {
-         do Screen.setColor(false);
-         do Screen.drawRectangle(x, y, x + 1, y + size);
-         let x = x + 1;
-         do Screen.setColor(true);
-         do Screen.drawRectangle((x + size) - 1, y, x + size, y + size);
-      }
-      return;
+    method void moveLeft() {
+        if (logicalX > 0) {
+            let logicalX = logicalX - 1;
+            do drawAtLogical();
+        }
+      return;  
     }
 
-    method int getX(){
-      return x;
+    method void moveRight() {
+        if (logicalX + size < 511) {
+            let logicalX = logicalX + 1;
+            do drawAtLogical();
+        }
+      return;  
     }
 
-    method int getY(){
-      return y;
+    /** Draws the snake based on logical coordinates */
+    method void drawAtLogical() {
+        // Erase old rectangle
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + size, y + size);
+
+        // Update visual coords to match logical
+        let x = logicalX;
+        let y = logicalY;
+
+        // Draw new rectangle
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + size, y + size);
+
+        // Update position array
+        do updatePos(x, y);
+
+        return;
     }
 
-    method int getSize(){
-      return size;
-    }
+    method int getX() { return logicalX; }
 
-    method void grow(){
-      let length = length + 1;
+    method int getY() { return logicalY; }
+
+    method int getSize() { return size; }
+
+    method void grow(int direction) {
+      do Screen.setColor(true); 
+      do Screen.drawRectangle(x, y, x + size, y + size); //placeholder
       return;
     }
 }

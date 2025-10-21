@@ -1,0 +1,105 @@
+/** Test program for snake movement and coordinate output */
+
+class SnakeTest {
+    field int x;
+    field int y;
+    field int size;
+
+    constructor SnakeTest new() {
+        let size = 8;
+        let x = 256; // start roughly center of 512-wide screen
+        let y = 128; // start roughly center of 256-high screen
+
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + size, y + size);
+
+        return this;
+    }
+
+method void run() {
+    var char key;
+    var boolean exit;
+    let exit = false;
+
+    while (~exit) {
+        let key = Keyboard.keyPressed();
+        if (~(key= 0)) {
+            // Move once based on key
+            if (key = 140) {       // ESC
+                let exit = true;
+            }
+            if (key = 131) {       // Up
+                do moveUp();
+            }
+            if (key = 133) {       // Down
+                do moveDown();
+            }
+            if (key = 130) {       // Left
+                do moveLeft();
+            }
+            if (key = 132) {       // Right
+                do moveRight();
+            }
+
+            // Wait until key is released
+            while (~(Keyboard.keyPressed() = 0)) {
+                do Sys.wait(1);
+            }
+        }
+
+        // Small delay to avoid spinning the CPU too fast
+        do Sys.wait(1);
+    }
+    return;
+}
+
+
+    method void moveUp() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + size, y + size); // erase old
+        let y = y - 1;
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + size, y + size); // draw new
+        do printCoords();
+        return;
+    }
+
+    method void moveDown() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + size, y + size); // erase old
+        let y = y + 1;
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + size, y + size); // draw new
+        do printCoords();
+        return;
+    }
+
+    method void moveLeft() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + size, y + size); // erase old
+        let x = x - 1;
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + size, y + size); // draw new
+        do printCoords();
+        return;
+    }
+
+    method void moveRight() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + size, y + size); // erase old
+        let x = x + 1;
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + size, y + size); // draw new
+        do printCoords();
+        return;
+    }
+
+    method void printCoords() {
+        do Output.moveCursor(0,0);
+        do Output.printString("X:");
+        do Output.printInt(x);
+        do Output.printString(" Y:");
+        do Output.printInt(y);
+        return;
+    }
+}

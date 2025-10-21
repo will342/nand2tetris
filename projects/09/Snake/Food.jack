@@ -4,12 +4,14 @@
 class Food {
     field int size;
     field int x , y;
+    boolean eaten;
 
     /** creates new food of length 1 in the middle of the screen */
     constructor Food new(int ax, int ay, int asize){
         let size = asize;
         let x = ax;
         let y = ay;
+        let eaten = false;
         do Screen.setColor(true);
         do Screen.drawRectangle(x,y,x+size,y+size);
         return this;
@@ -18,7 +20,9 @@ class Food {
    method void erase() {
       // Draws the square using the color white (background color)
       do Screen.setColor(false);
-      do Screen.drawRectangle(x, y, x + size, y + size);
+      //do Screen.drawRectangle(x, y, x + size, y + size);
+      let x = -9999;
+      let y = -9999;
       return;
    }
 
@@ -32,5 +36,9 @@ class Food {
 
     method int getFoodSize(){
         return size;
+    }
+
+    method boolean eaten(){
+        return eaten;
     }
 }

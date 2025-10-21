@@ -19,7 +19,7 @@ class SnakeGame {
         do Screen.drawLine(511, 0, 511, 255); // right border
     
         //create snake at x = 250, y = 125, size = 8, length = 1
-        let snake = Snake.new(250,125,8,1);
+        let snake = Snake.new(100,125,8,1);
 
         //create food at x = 125, y = 200, size = 4
         let food = Food.new(125, 200, 4);
@@ -39,65 +39,75 @@ class SnakeGame {
    }
 
 
-   method void run() {
-      var char key;  // the key currently pressed by the user
-      var boolean exit;
-      let exit = false;
-      
-      while (~exit & ~gameOverFlag) {
-         do gameOver();
-         // waits for a key to be pressed
-         while ((key = 0) & ~gameOverFlag) {
+    method void run() {
+        var char key;
+        var char lastKey;
+        var boolean exit;
+        let exit = false;
+        let lastKey = 0;
+
+        while (~exit & ~gameOverFlag) {
             let key = Keyboard.keyPressed();
+
+            // ESC
+            if (key = 140) { let exit = true; }
+
+            // Arrow keys: only update direction
+            if (key = 131) { let direction = 1; }
+            if (key = 133) { let direction = 2; }
+            if (key = 130) { let direction = 3; }
+            if (key = 132) { let direction = 4; }
+
+            // Always move in the current direction
             do moveSnake();
+
+            // debug output
+            do Output.moveCursor(0, 0);
+            do Output.printInt(snake.getX());
+            do Output.printString(",");
+            do Output.printInt(snake.getY());
+
+            do Sys.wait(5);
             do gameOver();
-         }
+        }
+        return;
+    }
 
-         if (key = 140) { let exit = true; }     //esc key
-         if (key = 131) { let direction = 1; }   // up arrow
-         if (key = 133) { let direction = 2; }   // down arrow
-         if (key = 130) { let direction = 3; }   // left arrow
-         if (key = 132) { let direction = 4; }   // right arrow
+    method void gameOver() {
 
-         // waits for the key to be released
-         while (~(key = 0) & ~gameOverFlag) {
-            let key = Keyboard.keyPressed();
-            do moveSnake();
-            do gameOver();
-         }
-     }
+        var boolean xOverlap;
+        var boolean yOverlap;
 
-     do Output.moveCursor(0,0);
-     do Output.printString("GAME OVER!");
-     return;
-   }
+        do Output.moveCursor(0,0);
+        do Output.printInt(snake.getX());
 
-   method void gameOver() {
 
-      /** Checks for collision against walls */
-      if (snake.getX() + snake.getSize() = 510)  {let gameOverFlag = true;} 
-      if (snake.getX() = 2)                      {let gameOverFlag = true;} 
-      if (snake.getY() + snake.getSize() = 254)  {let gameOverFlag = true;}
-      if (snake.getY() = 2)                      {let gameOverFlag = true;}
 
-      if ((snake.getX() < food.getFoodX() + food.getFoodSize()) &
-         (snake.getX() + snake.getSize() > food.getFoodX()) &
-         (snake.getY() < food.getFoodY() + food.getFoodSize()) &
-         (snake.getY() + snake.getSize() > food.getFoodY())) {
+        let xOverlap = (snake.getX() < food.getFoodX() + food.getFoodSize()) &
+                    (snake.getX() + snake.getSize() > food.getFoodX());
+        let yOverlap = (snake.getY() < food.getFoodY() + food.getFoodSize()) &
+                    (snake.getY() + snake.getSize() > food.getFoodY());
 
-         do food.erase();
-         do snake.grow();
-         do Output.moveCursor(0,0);
-         do Output.printString("YUM");
-      }
+        /** Checks for collision against walls */
+        if (snake.getX() + snake.getSize() = 510)  {let gameOverFlag = true;} 
+        if (snake.getX() = 2)                      {let gameOverFlag = true;} 
+        if (snake.getY() + snake.getSize() = 254)  {let gameOverFlag = true;}
+        if (snake.getY() = 2)                      {let gameOverFlag = true;}
 
-    return;
-   }
+        // Check for collision with food 
+        if (xOverlap){
+            //do Output.moveCursor(0,0);
+            //do Output.printString("xOverlap");
+        }
 
-   
+        if (xOverlap & yOverlap) {
+            do food.erase();
+            do snake.grow(direction);
+        }
+        return;    
+    }
 
     method void dispose() {
-      return;
-   }
-}
-
+        return;
+    }
+}        

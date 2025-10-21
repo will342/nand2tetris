@@ -9,3 +9,15 @@ class Main {
         return;
     }
 }
+
+/**
+class Main {
+    function void main() {
+        var SnakeTest test;
+        let test = SnakeTest.new();
+        do test.run();
+        //do game.dispose();
+        return;
+    }
+}
+*/
