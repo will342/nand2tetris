@@ -19,13 +19,6 @@ class Snake {
         let x = ax;
         let y = ay;
 
-        let i = 0;
-        while (i < 20){
-            let posArr[i] = x;
-            let posArr[i+1] = y;
-            let i = i+2;
-        }
-
         do Screen.setColor(true);
         do Screen.drawRectangle(x, y, x + size, y + size);
         return this;
@@ -33,7 +26,7 @@ class Snake {
 
     method void updatePos(int newX, int newY) {
         var int i;
-        let i = 2*length - 2; // last valid X index for tail
+        let i = 18;
         while (i > 1) {
             let posArr[i] = posArr[i-2];
             let posArr[i+1] = posArr[i-1];
@@ -80,6 +73,7 @@ class Snake {
 
     /** Draws the snake based on logical coordinates */
     method void drawAtLogical() {
+       
         // Erase old rectangle
         do Screen.setColor(false);
         do Screen.drawRectangle(x, y, x + size, y + size);
@@ -88,12 +82,17 @@ class Snake {
         let x = logicalX;
         let y = logicalY;
 
+        // Update position array
+        do updatePos(x, y);
+
+        do drawSegments();
+
+        // Erase tail after shift
+        do eraseTail();
+
         // Draw new rectangle
         do Screen.setColor(true);
         do Screen.drawRectangle(x, y, x + size, y + size);
-
-        // Update position array
-        do updatePos(x, y);
 
         return;
     }
@@ -112,8 +111,44 @@ class Snake {
     method void drawSegments() {
         var int i;
         let i = 2;
-        while (i+1 < 20) {
+        while ((length >1) & (i<20)) { //i < (length * 2)+2
+            do Screen.setColor(true);
             do Screen.drawRectangle(posArr[i], posArr[i+1], posArr[i]+size, posArr[i+1]+size);
+            let i = i + 2;
+        }
+        return;
+    }
+
+    method void eraseTail(){
+        //erase all positions after length -1
+        var int i;
+        let i = (2 * length);
+        do Screen.setColor(false);
+        while ((length>1) & (i <20)){
+            do Screen.drawRectangle(posArr[i], posArr[i+1],posArr[i]+size, posArr[i+1]+size);
+            let i = i + 2;
+        }
+        
+        /*
+        if (length > 1){
+            do Screen.setColor(false);
+            do Screen.drawRectangle(posArr[4], posArr[5],posArr[4]+size, posArr[5]+size);
+        }
+        */
+
+        return;
+    }
+
+    method void cordOutput(){
+        var int i;
+        let i = 0;
+        while (i <20){
+            do Output.printInt(i);
+            do Output.printString(" ");
+            do Output.printInt(posArr[i]);
+            do Output.printString(" ");
+            do Output.printInt(posArr[i+1]);
+            do Output.println();
             let i = i + 2;
         }
         return;

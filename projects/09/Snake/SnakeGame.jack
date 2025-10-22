@@ -34,7 +34,9 @@ class SnakeGame {
       if (direction = 2) { do snake.moveDown(); }
       if (direction = 3) { do snake.moveLeft(); }
       if (direction = 4) { do snake.moveRight(); }
-      do snake.drawSegments();
+      //do snake.drawSegments();
+      //do snake.eraseTail();
+      do snake.cordOutput(); //debug
       do Sys.wait(5);  // delays the next movement
       return;
    }
