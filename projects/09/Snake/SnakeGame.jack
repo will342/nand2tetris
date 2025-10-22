@@ -34,6 +34,7 @@ class SnakeGame {
       if (direction = 2) { do snake.moveDown(); }
       if (direction = 3) { do snake.moveLeft(); }
       if (direction = 4) { do snake.moveRight(); }
+      do snake.drawSegments();
       do Sys.wait(5);  // delays the next movement
       return;
    }
@@ -61,12 +62,6 @@ class SnakeGame {
             // Always move in the current direction
             do moveSnake();
 
-            // debug output
-            do Output.moveCursor(0, 0);
-            do Output.printInt(snake.getX());
-            do Output.printString(",");
-            do Output.printInt(snake.getY());
-
             do Sys.wait(5);
             do gameOver();
         }
@@ -78,31 +73,23 @@ class SnakeGame {
         var boolean xOverlap;
         var boolean yOverlap;
 
-        do Output.moveCursor(0,0);
-        do Output.printInt(snake.getX());
-
-
-
-        let xOverlap = (snake.getX() < food.getFoodX() + food.getFoodSize()) &
-                    (snake.getX() + snake.getSize() > food.getFoodX());
-        let yOverlap = (snake.getY() < food.getFoodY() + food.getFoodSize()) &
-                    (snake.getY() + snake.getSize() > food.getFoodY());
-
         /** Checks for collision against walls */
         if (snake.getX() + snake.getSize() = 510)  {let gameOverFlag = true;} 
         if (snake.getX() = 2)                      {let gameOverFlag = true;} 
         if (snake.getY() + snake.getSize() = 254)  {let gameOverFlag = true;}
         if (snake.getY() = 2)                      {let gameOverFlag = true;}
 
-        // Check for collision with food 
-        if (xOverlap){
-            //do Output.moveCursor(0,0);
-            //do Output.printString("xOverlap");
-        }
+        let xOverlap = (snake.getX() < food.getFoodX() + food.getFoodSize()) &
+                    (snake.getX() + snake.getSize() > food.getFoodX());
+        let yOverlap = (snake.getY() < food.getFoodY() + food.getFoodSize()) &
+                    (snake.getY() + snake.getSize() > food.getFoodY());
 
-        if (xOverlap & yOverlap) {
+
+        if (xOverlap & yOverlap & ~food.isEaten()) {
             do food.erase();
             do snake.grow(direction);
+            do Output.moveCursor(0,0);
+            //do Output.printString("Yum");
         }
         return;    
     }

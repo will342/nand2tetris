@@ -5,10 +5,10 @@ class Snake {
     field int x, y;           // visual coordinates (for drawing)
     field int logicalX, logicalY; // logical coordinates (for game logic)
     field Array posArr;
-    field boolean eaten;
-
+ 
     /** creates new snake of length 1 in the middle of the screen */
     constructor Snake new(int ax, int ay, int asize, int alength){
+        var int i;
         let posArr = Array.new(20);
         let length = alength;
         let size = asize;
@@ -19,28 +19,31 @@ class Snake {
         let x = ax;
         let y = ay;
 
-        let posArr[0] = x;
-        let posArr[1] = y;
-
-        let eaten = false;
+        let i = 0;
+        while (i < 20){
+            let posArr[i] = x;
+            let posArr[i+1] = y;
+            let i = i+2;
+        }
 
         do Screen.setColor(true);
         do Screen.drawRectangle(x, y, x + size, y + size);
         return this;
     }
 
-    method void updatePos(int newX, int newY){
+    method void updatePos(int newX, int newY) {
         var int i;
-        let i = 19;
+        let i = 2*length - 2; // last valid X index for tail
         while (i > 1) {
             let posArr[i] = posArr[i-2];
-            let posArr[i-1] = posArr[i-3];
+            let posArr[i+1] = posArr[i-1];
             let i = i - 2;
         }
-        let posArr[1] = newY;
         let posArr[0] = newX;
+        let posArr[1] = newY;
         return;
     }
+
 
     /** Move by one pixel in each direction */
     method void moveUp() {
@@ -102,8 +105,17 @@ class Snake {
     method int getSize() { return size; }
 
     method void grow(int direction) {
-      do Screen.setColor(true); 
-      do Screen.drawRectangle(x, y, x + size, y + size); //placeholder
-      return;
+        let length = length + 1;
+        return;
+    }
+
+    method void drawSegments() {
+        var int i;
+        let i = 2;
+        while (i+1 < 20) {
+            do Screen.drawRectangle(posArr[i], posArr[i+1], posArr[i]+size, posArr[i+1]+size);
+            let i = i + 2;
+        }
+        return;
     }
 }
