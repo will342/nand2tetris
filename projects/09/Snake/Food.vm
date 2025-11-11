@@ -1,5 +1,5 @@
 function Food.new 0
-push constant 3
+push constant 4
 call Memory.alloc 1
 pop pointer 0
 push argument 2
@@ -30,12 +30,25 @@ pop pointer 0
 push constant 0
 call Screen.setColor 1
 pop temp 0
+push this 1
+push this 2
+push this 1
+push this 0
+add
+push this 2
+push this 0
+add
+call Screen.drawRectangle 4
+pop temp 0
 push constant 9999
 neg
 pop this 1
 push constant 9999
 neg
 pop this 2
+push constant 0
+not
+pop this 3
 push constant 0
 return
 function Food.getFoodX 0
@@ -52,4 +65,9 @@ function Food.getFoodSize 0
 push argument 0
 pop pointer 0
 push this 0
+return
+function Food.isEaten 0
+push argument 0
+pop pointer 0
+push this 3
 return
