@@ -1,0 +1,70 @@
+class Snake {
+    field Array posArr;
+    field int xStart;
+    field int yStart;
+    field int xPos;
+    field int yPos;
+    field int size;
+
+    constructor Snake new(){
+        let size = 8;
+
+        let xStart = 100;
+        let yStart = 125;
+
+        let xPos = xStart;
+        let yPos = yStart;
+
+        return this;
+    }
+
+    method void erase(int direction, int length){
+        do Screen.setColor(false);
+        do Screen.drawRectangle(xPos, yPos, xPos + size, yPos + size);
+        return;
+    }
+
+    method void move(int direction, int length){
+        
+        //move up
+        if ((direction = 1) & (yPos > 1)) {
+            let yPos = yPos - 1;
+        }
+
+        //move down
+        if ((direction = 2) & (yPos + size < 255)) {
+            let yPos = yPos + 1;
+        }
+
+        //move left
+        if ((direction = 3) & (xPos > 1)){
+            let xPos = xPos -1;
+        }
+
+        //move right
+        if ((direction = 4) & (xPos + size < 511)){
+            let xPos = xPos + 1;
+        }
+
+        return;
+
+    }
+
+    method void draw(int direction, int length){
+        do Screen.setColor(true);
+        do Screen.drawRectangle(xPos, yPos, xPos + size, yPos + size);
+        return;
+    }
+
+    method boolean checkWallCollision(){
+        if ((xPos < 2) | (xPos + size > 510) | (yPos < 2) | (yPos + size > 254)){
+            return true;
+        }
+
+        return false;
+    }
+
+    method boolean checkSnakeCollision(int length){
+        return false;
+    }
+}
