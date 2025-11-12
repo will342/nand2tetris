@@ -27,19 +27,12 @@ class Food {
       return;
    }
 
-    method int getFoodX(){
-        return x;
-    }
+    method int getFoodX(){return x;}
+        
+    method int getFoodY(){return y;}
+        
+    method int getFoodSize(){return size;}
+        
+    method boolean isEaten(){return isEaten;}
 
-    method int getFoodY(){
-        return y;
-    }
-
-    method int getFoodSize(){
-        return size;
-    }
-
-    method boolean isEaten(){
-        return isEaten;
-    }
 }

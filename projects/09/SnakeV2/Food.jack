@@ -1,0 +1,49 @@
+class Food {
+    field int size;
+    field int xPos;
+    field int yPos;
+    field boolean isEaten;
+    field Array positions;
+
+    constructor Food new(int x, int y){
+        let size = 4;
+        let isEaten = false;
+        let xPos = x;
+        let yPos = y;
+
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x,y,x+size,y+size);
+
+        return this;
+    }
+
+   method void erase() {
+        let isEaten = true;
+        do Screen.setColor(false);
+        do Screen.drawRectangle(xPos, yPos, xPos + size, yPos + size);
+        let xPos = 0;
+        let yPos = 0;
+        return;
+   }
+
+    method void reposition(int x, int y){
+        let xPos = x;
+        let yPos = y;
+
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x,y,x+size,y+size);
+
+        let isEaten = false;
+
+        return;
+    }
+
+    method int getFoodX(){return xPos;}
+        
+    method int getFoodY(){return yPos;}
+        
+    method int getFoodSize(){return size;}
+        
+    method boolean isEaten(){return isEaten;}
+
+}

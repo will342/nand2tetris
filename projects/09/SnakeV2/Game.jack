@@ -1,17 +1,24 @@
 class Game {  
     field Snake snake;
+    field Food food;
+
+    field Array foodPositions;
+
     field boolean gameOver;
     field int direction;
     field int length;
+    field int foodNum;
 
     static int gameSpeed;
 
     constructor Game new(){
         let snake = Snake.new();
+        
+
         let gameOver = false;
         let length = 1;
         let direction = 0;
-        let gameSpeed = 20;
+        let gameSpeed = 50;
         
         //draw borders
         do Screen.setColor(true);
@@ -20,16 +27,33 @@ class Game {
         do Screen.drawLine(0, 0, 0, 255);     // left
         do Screen.drawLine(511, 0, 511, 255); // right
 
+        let foodPositions = Array.new(10);
+        let foodNum = 0;
+        
+        let foodPositions[0] = 125;
+        let foodPositions[1] = 200;
+        let foodPositions[2] = 50;
+        let foodPositions[3] = 50;
+        let foodPositions[4] = 125;
+        let foodPositions[5] = 200;
+        let foodPositions[6] = 50;
+        let foodPositions[7] = 50;
+        let foodPositions[8] = 125;
+        let foodPositions[9] = 200;
+
+        let food = Food.new(foodPositions[foodNum], foodPositions[foodNum+1]);
+
         return this;
     }
 
     method void run(){
         while (~gameOver){
             do getDirection();
-            do snake.erase(direction, length);
-            do snake.move(direction, length);
-            do snake.draw(direction, length);
+            do snake.erase(length);
+            do snake.move(length, direction);
+            do snake.draw(length);
             let gameOver = snake.checkWallCollision() | snake.checkSnakeCollision(length);
+            do grow();
             do debug();
             do Sys.wait(gameSpeed);
         }
@@ -46,6 +70,26 @@ class Game {
         if (key = 132) { let direction = 4; }
 
         return;
+    }
+
+    method void grow() {
+
+        var boolean xOverlap;
+        var boolean yOverlap;
+
+        let xOverlap = ((snake.getX()) < (food.getFoodX() + food.getFoodSize())) &
+                    ((snake.getX() + snake.getSize()) > (food.getFoodX()));
+        let yOverlap = ((snake.getY()) < (food.getFoodY() + food.getFoodSize())) &
+                    ((snake.getY() + snake.getSize()) > (food.getFoodY()));
+
+        if (xOverlap & yOverlap & ~food.isEaten()) {
+            do food.erase();
+            let length = length + 1;
+            let foodNum = foodNum + 2;
+            do food.reposition(foodPositions[foodNum], foodPositions[foodNum+1]);
+        }
+
+        return;    
     }
 
     method void debug(){

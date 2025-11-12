@@ -15,44 +15,74 @@ class Snake {
         let xPos = xStart;
         let yPos = yStart;
 
+        let posArr = Array.new(20);
+
         return this;
     }
 
-    method void erase(int direction, int length){
+    method void erase(int length){
+        var int i;
+        let i = length * 2;
         do Screen.setColor(false);
-        do Screen.drawRectangle(xPos, yPos, xPos + size, yPos + size);
+        while (i < 20){
+            do Screen.drawRectangle(posArr[i], posArr[i+1], posArr[i] + size, posArr[i+1] + size);
+            let i = i + 2;
+        }
         return;
     }
 
-    method void move(int direction, int length){
+    method void move(int length, int direction){
         
         //move up
         if ((direction = 1) & (yPos > 1)) {
-            let yPos = yPos - 1;
+            let yPos = yPos - size;
         }
 
         //move down
         if ((direction = 2) & (yPos + size < 255)) {
-            let yPos = yPos + 1;
+            let yPos = yPos + size;
         }
 
         //move left
         if ((direction = 3) & (xPos > 1)){
-            let xPos = xPos -1;
+            let xPos = xPos - size;
         }
 
         //move right
         if ((direction = 4) & (xPos + size < 511)){
-            let xPos = xPos + 1;
+            let xPos = xPos + size;
         }
+
+        do updatePos(xPos,yPos);
 
         return;
 
     }
 
-    method void draw(int direction, int length){
+    method void updatePos(int newX, int newY) {
+        var int i;
+        let i = 18;
+        while (i > 1) {
+            let posArr[i] = posArr[i-2];
+            let posArr[i+1] = posArr[i-1];
+            let i = i - 2;
+        }
+        let posArr[0] = newX;
+        let posArr[1] = newY;
+        return;
+    }
+
+    method void draw(int length){
+        var int i;
+        let i = 0;
+
         do Screen.setColor(true);
-        do Screen.drawRectangle(xPos, yPos, xPos + size, yPos + size);
+
+        while (i < (length * 2)){
+            do Screen.drawRectangle(posArr[i], posArr[i+1], posArr[i] + size, posArr[i+1] + size);
+            let i = i + 2;
+        }
+        
         return;
     }
 
@@ -65,6 +95,33 @@ class Snake {
     }
 
     method boolean checkSnakeCollision(int length){
+        var boolean xOverlap;
+        var boolean yOverlap;
+        var int i;
+
+        let xOverlap = false;
+        let yOverlap = false;
+        let i = 2;
+
+        while (i < (length * 2)){
+            let xOverlap = (((xPos) < (posArr[i] + size)) &
+                    ((xPos + size) > (posArr[i])));
+
+            let yOverlap = (((yPos) < (posArr[i+1] + size)) &
+                    ((yPos + size) > (posArr[i+1])));
+
+            if (xOverlap & yOverlap){return true;}
+
+            let i = i + 2;
+        }
+        
         return false;
     }
+
+    method int getX(){return xPos;}    
+
+    method int getY(){return yPos;}
+
+    method int getSize(){return size;}
+        
 }
