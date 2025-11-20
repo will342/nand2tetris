@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <sstream>
+#include <cctype>
 
 class JackTokenizer {
 
@@ -11,6 +12,7 @@ class JackTokenizer {
     std::vector<std::string> lines;
     std::string currentToken;
     std::vector<std::string> tokens;
+    std::string symbols =  "{}()[].,;+-*/&|<>+=";
 
     enum tokenTypes{
         KEYWORD,
@@ -101,21 +103,52 @@ JackTokenizer::JackTokenizer(const std::string& inputFilename) {
 				lines.push_back(line);
 			}
 		}
+
+        for (const auto& line : lines){
+            std::string str = "";
+            bool isString = false;
+
+            for (const char& c: line){
+                bool isSymbol = symbols.find(c) != std::string::npos;
+                bool isSpace = std::isspace(c);
+                bool isQuote = c == '"';
+
+                if( isQuote){
+                    isString = !isString;
+                }
+                
+                if (!isSymbol && !isSpace && !isString && !isQuote){
+                    str += c;
+                }
+
+                if (isSpace && !str.empty() && !isString){
+                    tokens.push_back(str);
+                    str = "";
+                }
+
+                if(isSymbol && !isString){
+                    if (!str.empty()){
+                        tokens.push_back(str);
+                    }
+                    tokens.push_back(std::string(1,c));
+                    str = "";
+                }
+
+                if (isString && !isQuote){
+                    str += c;
+                }
+            }
+
+            if (!str.empty()){
+                tokens.push_back(str);
+                str = "";
+            }
+        }
 	}
-	else {
+    else {
 		std::cout << "Parser constructor was unable to open file" << std::endl;
 	}
-
-    for (const auto& line : lines){
-        // to do: seperate out symbols into new elements
-        std::stringstream ss(line);
-        std::string token;
-
-        while (ss >> token){
-            tokens.push_back(token);
-        }
-    }
-}
+}   
 
 void JackTokenizer::printLines() {
 	for (const auto& line : lines) {
@@ -183,10 +216,8 @@ int main() {
     JackTokenizer jackTokenizer(inputPath);
     CompilationEngine compilationEngine;
 
-    jackTokenizer.printLines();
+    //jackTokenizer.printLines();
   
-    std::cout <<"Tokens\n";
-
     jackTokenizer.printTokens();
   
     return 0;
