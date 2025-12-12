@@ -14,6 +14,7 @@ class JackTokenizer {
     std::string currentToken;
     std::vector<std::string> tokens;
     std::string symbols =  "{}()[].,;+-*/&|<>+=~";
+    size_t currentPos = 0;
 
     enum tokenTypes{
         KEYWORD,
@@ -22,30 +23,6 @@ class JackTokenizer {
         INT_CONST,
         STRING_CONST,
         UNKNOWN_TOKEN
-    };
-
-    std::unordered_map<std::string, tokenTypes> typeDict = {
-        {"class", KEYWORD},
-        {"constructor", KEYWORD},
-        {"method", KEYWORD},
-        {"function", KEYWORD},
-        {"field", KEYWORD},
-        {"static", KEYWORD},
-        {"var", KEYWORD},
-        {"int", KEYWORD},
-        {"char", KEYWORD},
-        {"boolean", KEYWORD},
-        {"void", KEYWORD},
-        {"true", KEYWORD},
-        {"false", KEYWORD},
-        {"null", KEYWORD},
-        {"this", KEYWORD},
-        {"let", KEYWORD},
-        {"do", KEYWORD},
-        {"if", KEYWORD},
-        {"else", KEYWORD},
-        {"while", KEYWORD},
-        {"return", KEYWORD}
     };
 
     enum keyWords{
@@ -73,7 +50,7 @@ class JackTokenizer {
         UNKNOWN_KEYWORD
     };
 
-    std::unordered_map<std::string, keyWords> keywordDict = {
+    std::unordered_map<std::string, keyWords> keywordMap = {
         {"class", CLASS},
         {"constructor", CONSTRUCTOR},
         {"method", METHOD},
@@ -213,21 +190,21 @@ void JackTokenizer::printTokens() {
 
 
 bool JackTokenizer::hasMoreTokens(){
-    return !tokens.empty();
+    return currentPos < tokens.size();
 }
 
 void JackTokenizer::advance(){
     if (hasMoreTokens()){
-        currentToken = tokens.front();
-        tokens.erase(tokens.begin());
+        currentToken = tokens[currentPos];
+        currentPos++;
     }
 }
 
 JackTokenizer::tokenTypes JackTokenizer::tokenType(){
     //returns the type of current token (keyword, symbol, identifier, int_const, string_const)
-	auto it = typeDict.find(currentToken);
-	if (it != typeDict.end()) {
-		return it->second;
+	auto it = keywordMap.find(currentToken);
+	if (it != keywordMap.end()) {
+		return KEYWORD;
 	}
 	
     if (symbols.find(currentToken) != std::string::npos){
@@ -253,8 +230,8 @@ JackTokenizer::tokenTypes JackTokenizer::tokenType(){
 
 JackTokenizer::keyWords JackTokenizer::keyWord(){
     if (tokenType() == KEYWORD){
-        auto it = keywordDict.find(currentToken);
-        if (it != keywordDict.end()) {
+        auto it = keywordMap.find(currentToken);
+        if (it != keywordMap.end()) {
             return it->second;
 	    }
     }
@@ -300,16 +277,16 @@ class CompilationEngine{
     public: 
     CompilationEngine();
 
-    void CompileClass();
-    void CompileClassVarDec();
-    void CompileSubroutine();
+    void compileClass();
+    void compileClassVarDec();
+    void compileSubroutine();
     void compileParameterList();
     void compileVarDec();
     void compileStatements();
     void compileDo();
     void compileLet();
     void compileWhile();
-    void compilteReturn();
+    void compileReturn();
     void compileIf();
     void compileTerm();
     void compileExpressionList();
@@ -341,33 +318,38 @@ int main() {
     while (jackTokenizer.hasMoreTokens()){
         jackTokenizer.advance();
 
-        if (jackTokenizer.tokenType() == JackTokenizer::KEYWORD){
-            outputFile << "<keyword> " + jackTokenizer.currentToken << " </keyword>\n";
-        }
+        switch (jackTokenizer.tokenType()){
+            case JackTokenizer::KEYWORD:
+                outputFile << "<keyword> " + jackTokenizer.currentToken << " </keyword>\n";
+                break;
 
-        if (jackTokenizer.tokenType() == JackTokenizer::SYMBOL) {
-            char c = jackTokenizer.symbol();
-            std::string output;
+            case JackTokenizer::SYMBOL: {
+                char c = jackTokenizer.symbol();
+                std::string output;
 
-            if (c == '<') {output = "&lt;";}
-            else if (c == '>') {output = "&gt;";}
-            else if (c == '"') {output = "&quot;";}
-            else if (c == '&') {output = "&amp;";}
-            else {output = std::string(1, c);}
+                if (c == '<') {output = "&lt;";}
+                else if (c == '>') {output = "&gt;";}
+                else if (c == '"') {output = "&quot;";}
+                else if (c == '&') {output = "&amp;";}
+                else {output = std::string(1, c);}
 
-            outputFile << "<symbol> " << output << " </symbol>\n";
-        }
+                outputFile << "<symbol> " << output << " </symbol>\n";
+                
+                break;
+            }
 
-        if (jackTokenizer.tokenType() == JackTokenizer::IDENTIFIER){
-            outputFile << "<identifier> " + jackTokenizer.currentToken << " </identifier>\n";
-        }
-        
-        if (jackTokenizer.tokenType() == JackTokenizer::INT_CONST){
-            outputFile << "<integerConstant> " + jackTokenizer.currentToken << " </integerConstant>\n";
-        }
-        
-        if (jackTokenizer.tokenType() == JackTokenizer::STRING_CONST){
-            outputFile << "<stringConstant> " + jackTokenizer.stringVal() << " </stringConstant>\n";
+            case JackTokenizer::IDENTIFIER:
+                outputFile << "<identifier> " << jackTokenizer.currentToken << " </identifier>\n";
+                break;
+
+            case JackTokenizer::INT_CONST:
+                outputFile << "<integerConstant> " << jackTokenizer.currentToken << " </integerConstant>\n";
+                break;
+
+            case JackTokenizer::STRING_CONST:
+                outputFile << "<stringConstant> " << jackTokenizer.currentToken << " </stringConstant>\n";
+                break;
+
         }
 
         std::cout << std::endl;
