@@ -275,8 +275,12 @@ std::string JackTokenizer::stringVal(){
 }
 
 class CompilationEngine{
+    private:
+    std::ofstream outputFile;
+    JackTokenizer& tokenizer;
+    
     public: 
-    CompilationEngine();
+    CompilationEngine(JackTokenizer&, fs::path&);
 
     void compileClass();
     void compileClassVarDec();
@@ -293,25 +297,20 @@ class CompilationEngine{
     void compileExpressionList();
 };
 
-CompilationEngine::CompilationEngine(){
-        
-    std::ofstream outputFile;
+CompilationEngine::CompilationEngine(JackTokenizer& tok, fs::path& outputPath)
+    : tokenizer(tok), outputFile(outputPath) {}
 
-    outputFile.open("Main.xml");
-
-	if (!outputFile.is_open()) {
-        std::cout << "Parser constructor was unable to open file\n";
-	}
-
-    outputFile << "<tokens>\n";
+void CompilationEngine::compileClass(){
+    // to do: put all decision making and functions calls here
 }
 
 int main() {
 
-    fs::path programFolder = "Square";
+    fs::path programFolder = "ArrayTest";
     fs::path outputPath;
     std::vector<fs::path> jackFilePaths;
 
+    // Generate xxxT.xml files for tokenizer testing
     for (const auto & entry : fs::directory_iterator(programFolder))
     if (entry.path().extension() == ".jack"){
         jackFilePaths.push_back(entry.path());
@@ -366,12 +365,25 @@ int main() {
         }
 
         outputFile << "</tokens>";
+    }
 
-        CompilationEngine compilationEngine;
+    //Generate final .xml files using compilation engine
+    for (const auto & path : jackFilePaths){
+        fs::path inputPath = path;
+        outputPath = path.stem().string() + ".xml";
+        std::ofstream outputFile(outputPath);
+
+        JackTokenizer jackTokenizer(inputPath);
+        CompilationEngine compilationEngine (jackTokenizer, outputPath);
+        
+        compilationEngine.compileClass();
+
+
+        }
 
         //jackTokenizer.printLines();
     
         //jackTokenizer.printTokens();
-    }
+    
     return 0;
 }
