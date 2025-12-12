@@ -6,6 +6,7 @@
 #include <sstream>
 #include <cctype>
 #include <unordered_map>
+namespace fs = std::filesystem;
 
 class JackTokenizer {
 
@@ -306,62 +307,71 @@ CompilationEngine::CompilationEngine(){
 }
 
 int main() {
-    // TO DO - test program on Square files, need to add functionality to convert all files by name
-	std::ofstream outputFile;
-    outputFile.open("MainT.xml");
-    outputFile << "<tokens>\n";
-   
-    std::filesystem::path inputPath("Square/Square.jack");
 
-    JackTokenizer jackTokenizer(inputPath);
+    fs::path programFolder = "Square";
+    fs::path outputPath;
+    std::vector<fs::path> jackFilePaths;
 
-    while (jackTokenizer.hasMoreTokens()){
-        jackTokenizer.advance();
+    for (const auto & entry : fs::directory_iterator(programFolder))
+    if (entry.path().extension() == ".jack"){
+        jackFilePaths.push_back(entry.path());
+    } 
 
-        switch (jackTokenizer.tokenType()){
-            case JackTokenizer::KEYWORD:
-                outputFile << "<keyword> " + jackTokenizer.currentToken << " </keyword>\n";
-                break;
+    for (const auto & path : jackFilePaths){
+        fs::path inputPath = path;
+        outputPath = path.stem().string() + "T.xml";
+        std::ofstream outputFile(outputPath);
+        outputFile << "<tokens>\n";
 
-            case JackTokenizer::SYMBOL: {
-                char c = jackTokenizer.symbol();
-                std::string output;
+        JackTokenizer jackTokenizer(inputPath);
 
-                if (c == '<') {output = "&lt;";}
-                else if (c == '>') {output = "&gt;";}
-                else if (c == '"') {output = "&quot;";}
-                else if (c == '&') {output = "&amp;";}
-                else {output = std::string(1, c);}
+        while (jackTokenizer.hasMoreTokens()){
+            jackTokenizer.advance();
 
-                outputFile << "<symbol> " << output << " </symbol>\n";
-                
-                break;
+            switch (jackTokenizer.tokenType()){
+                case JackTokenizer::KEYWORD:
+                    outputFile << "<keyword> " + jackTokenizer.currentToken << " </keyword>\n";
+                    break;
+
+                case JackTokenizer::SYMBOL: {
+                    char c = jackTokenizer.symbol();
+                    std::string output;
+
+                    if (c == '<') {output = "&lt;";}
+                    else if (c == '>') {output = "&gt;";}
+                    else if (c == '"') {output = "&quot;";}
+                    else if (c == '&') {output = "&amp;";}
+                    else {output = std::string(1, c);}
+
+                    outputFile << "<symbol> " << output << " </symbol>\n";
+                    
+                    break;
+                }
+
+                case JackTokenizer::IDENTIFIER:
+                    outputFile << "<identifier> " << jackTokenizer.identifier() << " </identifier>\n";
+                    break;
+
+                case JackTokenizer::INT_CONST:
+                    outputFile << "<integerConstant> " << jackTokenizer.intVal() << " </integerConstant>\n";
+                    break;
+
+                case JackTokenizer::STRING_CONST:
+                    outputFile << "<stringConstant> " << jackTokenizer.stringVal() << " </stringConstant>\n";
+                    break;
+
             }
 
-            case JackTokenizer::IDENTIFIER:
-                outputFile << "<identifier> " << jackTokenizer.currentToken << " </identifier>\n";
-                break;
-
-            case JackTokenizer::INT_CONST:
-                outputFile << "<integerConstant> " << jackTokenizer.currentToken << " </integerConstant>\n";
-                break;
-
-            case JackTokenizer::STRING_CONST:
-                outputFile << "<stringConstant> " << jackTokenizer.currentToken << " </stringConstant>\n";
-                break;
-
+            std::cout << std::endl;
         }
 
-        std::cout << std::endl;
+        outputFile << "</tokens>";
+
+        CompilationEngine compilationEngine;
+
+        //jackTokenizer.printLines();
+    
+        //jackTokenizer.printTokens();
     }
-
-    outputFile << "</tokens>";
-
-    CompilationEngine compilationEngine;
-
-    //jackTokenizer.printLines();
-  
-    //jackTokenizer.printTokens();
-  
     return 0;
 }
