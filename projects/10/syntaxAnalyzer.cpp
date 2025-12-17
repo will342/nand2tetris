@@ -230,6 +230,7 @@ JackTokenizer::tokenTypes JackTokenizer::tokenType(){
 }
 
 JackTokenizer::keyWords JackTokenizer::keyWord(){
+    //returns the keyword type
     if (tokenType() == KEYWORD){
         auto it = keywordMap.find(currentToken);
         if (it != keywordMap.end()) {
@@ -278,6 +279,8 @@ class CompilationEngine{
     private:
     std::ofstream outputFile;
     JackTokenizer& tokenizer;
+    int programLevel = 1;
+    std::string indent = "";
     
     public: 
     CompilationEngine(JackTokenizer&, fs::path&);
@@ -295,14 +298,112 @@ class CompilationEngine{
     void compileIf();
     void compileTerm();
     void compileExpressionList();
+    void writeToken();
+    void setIndent();
 };
 
 CompilationEngine::CompilationEngine(JackTokenizer& tok, fs::path& outputPath)
-    : tokenizer(tok), outputFile(outputPath) {}
+    : tokenizer(tok), outputFile(outputPath) {
+    outputFile << "<class>\n";    
+    }
 
 void CompilationEngine::compileClass(){
-    // to do: put all decision making and functions calls here
+    while (tokenizer.hasMoreTokens()){    
+        tokenizer.advance();
+
+        if (tokenizer.keyWord() == JackTokenizer::STATIC || tokenizer.keyWord() == JackTokenizer::FIELD){
+            compileClassVarDec();    
+        }
+
+        if (tokenizer.keyWord() == JackTokenizer::CONSTRUCTOR
+         || tokenizer.keyWord() == JackTokenizer::FUNCTION
+         || tokenizer.keyWord() == JackTokenizer::METHOD
+         || tokenizer.keyWord() == JackTokenizer::VOID){
+            compileSubroutine();
+        }
+        
+        else{
+            writeToken();
+        }
+    }
+
+    if(!tokenizer.hasMoreTokens()){
+        outputFile << "</class>";
+    } 
 }
+
+void CompilationEngine::compileClassVarDec(){
+    outputFile << indent << "<classVarDec>\n";
+    outputFile << indent << "</classVarDec>\n";
+
+}
+
+void CompilationEngine::compileSubroutine(){
+    bool inSubroutine = true;
+    outputFile << indent << "<subroutineDec>\n";
+    programLevel ++;
+    writeToken();
+
+    while (tokenizer.hasMoreTokens() && inSubroutine){    
+        tokenizer.advance();
+        writeToken();
+        if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == ')') ){
+            inSubroutine = false;
+        }
+    }
+
+    programLevel -= 1;
+    setIndent();
+    outputFile << indent << "</subroutineDec>\n";
+    compileClass();
+
+}
+
+void CompilationEngine::writeToken(){
+    setIndent();
+
+    switch (tokenizer.tokenType()){
+    case JackTokenizer::KEYWORD:
+        outputFile << indent << "<keyword> " + tokenizer.currentToken << " </keyword>\n";
+        break;
+
+    case JackTokenizer::SYMBOL: {
+        char c = tokenizer.symbol();
+        std::string output;
+
+        if (c == '<') {output = "&lt;";}
+        else if (c == '>') {output = "&gt;";}
+        else if (c == '"') {output = "&quot;";}
+        else if (c == '&') {output = "&amp;";}
+        else {output = std::string(1, c);}
+
+        outputFile << indent << "<symbol> " << output << " </symbol>\n";
+        
+        break;
+    }
+
+    case JackTokenizer::IDENTIFIER:
+        outputFile << indent << "<identifier> " << tokenizer.identifier() << " </identifier>\n";
+        break;
+
+    case JackTokenizer::INT_CONST:
+        outputFile << indent << "<integerConstant> " << tokenizer.intVal() << " </integerConstant>\n";
+        break;
+
+    case JackTokenizer::STRING_CONST:
+        outputFile << indent << "<stringConstant> " << tokenizer.stringVal() << " </stringConstant>\n";
+        break;
+
+    }
+}
+
+void CompilationEngine::setIndent(){
+    indent = "";
+    for (int i = 0 ; i < programLevel; i++){
+        indent += "  ";
+    }
+}
+
 
 int main() {
 
