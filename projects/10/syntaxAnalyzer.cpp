@@ -355,8 +355,6 @@ void CompilationEngine::compileSubroutine(){
     programLevel -= 1;
     setIndent();
     outputFile << indent << "</subroutineDec>\n";
-    compileClass();
-
 }
 
 void CompilationEngine::writeToken(){
