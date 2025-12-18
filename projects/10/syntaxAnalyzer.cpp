@@ -344,10 +344,25 @@ void CompilationEngine::compileSubroutine(){
     programLevel ++;
     writeToken();
 
-    while (tokenizer.hasMoreTokens() && inSubroutine){    
-        tokenizer.advance();
-        writeToken();
-        if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == ')') ){
+    while (tokenizer.hasMoreTokens() && inSubroutine){
+        bool write = true;
+        tokenizer.advance();    
+        if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == '{') ){
+            outputFile << indent << "<subroutineBody>\n";
+            programLevel++;
+        }
+
+        if(tokenizer.keyWord() == JackTokenizer::VAR){
+            compileVarDec();
+            write = false;
+        }
+                
+        if(write) {writeToken();}
+
+        if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == '(') ){
+            compileParameterList();
+        }
+        if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == '}') ){
             inSubroutine = false;
         }
     }
@@ -355,6 +370,46 @@ void CompilationEngine::compileSubroutine(){
     programLevel -= 1;
     setIndent();
     outputFile << indent << "</subroutineDec>\n";
+}
+
+void CompilationEngine::compileParameterList(){
+    bool inParameterList = true;
+    outputFile << indent << "<parameterList>\n";
+    programLevel ++;
+
+    while (tokenizer.hasMoreTokens() && inParameterList){
+        tokenizer.advance();
+        if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == ')') ){
+            inParameterList = false;
+        }
+
+        if (inParameterList){writeToken();}    
+    }
+
+    programLevel -= 1;
+    setIndent();
+    outputFile << indent << "</parameterList>\n";
+    writeToken();
+}
+
+void CompilationEngine::compileVarDec(){
+    bool inVarDec = true;
+    outputFile << indent << "<varDec>\n";
+    programLevel ++;
+    writeToken();
+
+    while (tokenizer.hasMoreTokens() && inVarDec){
+        tokenizer.advance();
+        writeToken();
+        if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == ';') ){
+            inVarDec = false;
+        }
+    }
+
+    //tokenizer.advance();
+    programLevel -= 1;
+    setIndent();
+    outputFile << indent << "</varDec>\n";
 }
 
 void CompilationEngine::writeToken(){
