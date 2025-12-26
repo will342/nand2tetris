@@ -80,6 +80,7 @@ class JackTokenizer {
     void printTokens();
     bool hasMoreTokens();
     void advance();
+    void retreat();
     tokenTypes tokenType();
     keyWords keyWord();
     char symbol();
@@ -201,6 +202,10 @@ void JackTokenizer::advance(){
     }
 }
 
+void JackTokenizer::retreat(){
+    if (currentPos !=0){currentPos -= 1;} 
+}
+
 JackTokenizer::tokenTypes JackTokenizer::tokenType(){
     //returns the type of current token (keyword, symbol, identifier, int_const, string_const)
 	auto it = keywordMap.find(currentToken);
@@ -296,6 +301,7 @@ class CompilationEngine{
     void compileWhile();
     void compileReturn();
     void compileIf();
+    void compileExpression();
     void compileTerm();
     void compileExpressionList();
     void writeToken();
@@ -315,13 +321,13 @@ void CompilationEngine::compileClass(){
             compileClassVarDec();    
         }
 
-        if (tokenizer.keyWord() == JackTokenizer::CONSTRUCTOR
+        else if (tokenizer.keyWord() == JackTokenizer::CONSTRUCTOR
          || tokenizer.keyWord() == JackTokenizer::FUNCTION
          || tokenizer.keyWord() == JackTokenizer::METHOD
          || tokenizer.keyWord() == JackTokenizer::VOID){
             compileSubroutine();
         }
-        
+
         else{
             writeToken();
         }
@@ -333,7 +339,22 @@ void CompilationEngine::compileClass(){
 }
 
 void CompilationEngine::compileClassVarDec(){
+    bool inClassVarDec = true;
     outputFile << indent << "<classVarDec>\n";
+    programLevel ++;
+    setIndent();
+    writeToken();
+
+    while (tokenizer.hasMoreTokens() && inClassVarDec){
+    tokenizer.advance();
+    writeToken();
+        if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == ';') ){
+            inClassVarDec = false;
+        }
+    }
+
+    programLevel -= 1;
+    setIndent();
     outputFile << indent << "</classVarDec>\n";
 
 }
@@ -356,15 +377,32 @@ void CompilationEngine::compileSubroutine(){
             compileVarDec();
             write = false;
         }
-                
-        if(write) {writeToken();}
 
         if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == '(') ){
+            writeToken();
             compileParameterList();
+            write = false;
         }
+
+        if (tokenizer.keyWord() == JackTokenizer::LET
+            ||tokenizer.keyWord() == JackTokenizer::IF
+            ||tokenizer.keyWord() == JackTokenizer::WHILE
+            ||tokenizer.keyWord() == JackTokenizer::DO
+            ||tokenizer.keyWord() == JackTokenizer::RETURN){
+            compileStatements();
+            write = false;    
+            }
+
         if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == '}') ){
+            writeToken();
             inSubroutine = false;
+            programLevel -= 1;
+            setIndent();
+            outputFile << indent << "</subroutineBody>\n";
+            write = false;
         }
+
+        if(write) {writeToken();}
     }
 
     programLevel -= 1;
@@ -406,10 +444,230 @@ void CompilationEngine::compileVarDec(){
         }
     }
 
-    //tokenizer.advance();
     programLevel -= 1;
     setIndent();
     outputFile << indent << "</varDec>\n";
+}
+
+void CompilationEngine::compileStatements(){
+    bool inStatements = true;
+    outputFile << indent << "<statements>\n";
+    programLevel++;
+    setIndent();
+
+    while (tokenizer.hasMoreTokens() && inStatements){
+        if (tokenizer.keyWord() == JackTokenizer::LET){
+            compileLet();
+            tokenizer.advance();
+        }
+             
+        else if (tokenizer.keyWord() == JackTokenizer::IF){
+            compileIf();
+            tokenizer.advance();
+        }
+
+        else if (tokenizer.keyWord() == JackTokenizer::WHILE){
+            compileWhile();
+            tokenizer.advance();
+        }
+
+        else if (tokenizer.keyWord() == JackTokenizer::DO){
+            compileDo();
+            tokenizer.advance();
+        }
+
+        else if (tokenizer.keyWord() == JackTokenizer::RETURN){
+            compileReturn();
+            tokenizer.advance();
+        }
+
+        else {inStatements = false;}
+    }
+    
+    programLevel -= 1;
+    setIndent();
+    outputFile << indent << "</statements>\n";
+}
+
+void CompilationEngine::compileLet(){
+    bool inLetStatement = true;
+    outputFile << indent << "<letStatement>\n";
+    programLevel ++;
+    setIndent();
+
+    while (tokenizer.hasMoreTokens() && inLetStatement){
+        writeToken();
+        if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == ';') ){
+            inLetStatement = false;
+        }
+        if (tokenizer.symbol() == '='){
+            tokenizer.advance();
+            compileExpression();
+        }
+        if (inLetStatement){tokenizer.advance();}
+    }
+
+    programLevel -= 1;
+    setIndent();
+    outputFile << indent << "</letStatement>\n";
+}
+
+void CompilationEngine::compileIf(){
+    bool inIfStatement = true;
+    outputFile << indent << "<ifStatement>\n";
+    programLevel ++;
+    setIndent();
+
+    while (tokenizer.hasMoreTokens() && inIfStatement){
+        writeToken();
+         
+        if (tokenizer.symbol() == '('){
+            tokenizer.advance();
+            compileExpression();
+        }
+        if(tokenizer.symbol() == '{'){ 
+            tokenizer.advance();
+            compileStatements();
+        }
+
+        if (tokenizer.symbol() == '}'){
+            writeToken();
+            inIfStatement = false;
+        }
+
+        if (inIfStatement){tokenizer.advance();}
+    }
+
+    tokenizer.advance(); 
+    if (tokenizer.keyWord() == JackTokenizer::ELSE){
+                writeToken();
+                tokenizer.advance();
+                writeToken();
+                compileStatements(); 
+                tokenizer.advance();
+                writeToken();
+                inIfStatement = false;
+    }
+    else{tokenizer.retreat();}
+
+    programLevel -= 1;
+    setIndent();
+    outputFile << indent << "</ifStatement>\n";
+}
+
+void CompilationEngine::compileWhile(){
+    bool inWhileStatement = true;
+    outputFile << indent << "<whileStatement>\n";
+    programLevel ++;
+    setIndent();
+
+    while (tokenizer.hasMoreTokens() && inWhileStatement){
+        writeToken();
+        if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == ';') ){
+            inWhileStatement = false;
+        }
+
+        if(tokenizer.symbol() == '('){
+            tokenizer.advance();
+            compileExpression();
+        }
+
+        if(tokenizer.symbol() == '{'){ 
+            tokenizer.advance();
+            compileStatements();
+        }
+
+        if (tokenizer.symbol() == '}'){
+            writeToken();
+            inWhileStatement = false;
+        }
+
+        if (inWhileStatement){tokenizer.advance();}
+    }
+    programLevel -= 1;
+    setIndent();
+    outputFile << indent << "</whileStatement>\n";
+}
+
+void CompilationEngine::compileDo(){
+    bool inDoStatement = true;
+    outputFile << indent << "<doStatement>\n";
+    programLevel ++;
+    setIndent();
+
+    while (tokenizer.hasMoreTokens() && inDoStatement){
+        writeToken();
+        if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == ';') ){
+            inDoStatement = false;
+        }
+
+        if(tokenizer.symbol() == '('){
+            compileExpressionList();
+        }
+        if (inDoStatement){tokenizer.advance();}
+    }
+    programLevel -= 1;
+    setIndent();
+    outputFile << indent << "</doStatement>\n";
+}
+
+void CompilationEngine::compileReturn(){
+    bool inReturnStatement = true;
+    outputFile << indent << "<returnStatement>\n";
+    programLevel ++;
+    setIndent();
+    writeToken();
+    tokenizer.advance();
+
+    if (tokenizer.symbol() != ';'){
+        compileExpression();
+        tokenizer.advance();
+    }
+    if (tokenizer.symbol() == ';'){
+        writeToken();
+    }
+    programLevel -= 1;
+    setIndent();
+    outputFile << indent << "</returnStatement>\n";
+}
+
+void CompilationEngine::compileExpressionList(){
+    bool inExpressionList = true;
+    tokenizer.advance();
+    outputFile << indent << "<expressionList>\n";
+
+    while (tokenizer.symbol() != ')') {
+            if (tokenizer.tokenType() == JackTokenizer::SYMBOL){
+                writeToken();
+            }
+            else {compileExpression();}
+            tokenizer.advance();
+    }
+
+    outputFile << indent<< "</expressionList>\n";
+    if (tokenizer.symbol() == ')'){
+        writeToken();
+    }
+}
+
+void CompilationEngine::compileExpression(){
+    outputFile << indent << "<expression>\n";
+    compileTerm();
+    outputFile << indent << "</expression>\n";
+}
+
+void CompilationEngine::compileTerm(){
+    programLevel++;
+    setIndent();
+    outputFile << indent << "<term>\n";
+    programLevel++;
+    setIndent();
+    writeToken();
+    programLevel -= 1;
+    setIndent();
+    outputFile << indent << "</term>\n";
+    programLevel -= 1;
+    setIndent();
 }
 
 void CompilationEngine::writeToken(){
@@ -447,6 +705,9 @@ void CompilationEngine::writeToken(){
         outputFile << indent << "<stringConstant> " << tokenizer.stringVal() << " </stringConstant>\n";
         break;
 
+    case JackTokenizer::UNKNOWN_TOKEN:
+        outputFile << indent <<"UNKNOWN TOKEN\n";
+        break;
     }
 }
 
@@ -460,7 +721,7 @@ void CompilationEngine::setIndent(){
 
 int main() {
 
-    fs::path programFolder = "ArrayTest";
+    fs::path programFolder = "ExpressionLessSquare";
     fs::path outputPath;
     std::vector<fs::path> jackFilePaths;
 
@@ -513,6 +774,9 @@ int main() {
                     outputFile << "<stringConstant> " << jackTokenizer.stringVal() << " </stringConstant>\n";
                     break;
 
+                case JackTokenizer::UNKNOWN_TOKEN:
+                    outputFile << "UNKNOWN_TOKEN\n";
+                    break;
             }
 
             std::cout << std::endl;
