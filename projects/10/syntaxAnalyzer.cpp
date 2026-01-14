@@ -546,6 +546,7 @@ void CompilationEngine::compileIf(){
                 writeToken();
                 tokenizer.advance();
                 writeToken();
+                tokenizer.advance();
                 compileStatements(); 
                 tokenizer.advance();
                 writeToken();
@@ -667,7 +668,11 @@ void CompilationEngine::compileExpression(){
         tokenizer.advance();
         if (tokenizer.tokenType() == JackTokenizer::SYMBOL){
             if (ops.find(tokenizer.symbol()) != std::string::npos){
+                programLevel++;
+                setIndent();
                 writeToken();
+                programLevel -= 1;
+                setIndent();
                 tokenizer.advance();
             }
             else {
@@ -708,7 +713,7 @@ void CompilationEngine::compileTerm(){
     }
 
     while(inTerm){
-        if (tokenizer.symbol() != ';'){
+        if ((tokenizer.symbol() != ';') && (tokenizer.symbol() != '(')){
             writeToken();
             tokenizer.advance();
         }
@@ -717,7 +722,8 @@ void CompilationEngine::compileTerm(){
             writeToken();
             compileExpressionList();
         }
-        else if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() != '.') && (tokenizer.symbol() != '[') && (tokenizer.symbol() != '=') ){
+
+        else if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() != '.') && (tokenizer.symbol() != '[') && (tokenizer.symbol() != '=')){
             inTerm = false;
             tokenizer.retreat();
         }
@@ -731,9 +737,8 @@ void CompilationEngine::compileTerm(){
             tokenizer.advance();
             compileExpression();
         }
-
-
     }
+
     programLevel -= 1;
     setIndent();
     outputFile << indent << "</term>\n";

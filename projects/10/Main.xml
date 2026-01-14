@@ -166,61 +166,75 @@
           <keyword> else </keyword>
           <symbol> { </symbol>
           <statements>
-          </statements>
-          <keyword> let </keyword>
-        </ifStatement>
-      </statements>
-      <symbol> = </symbol>
-      <identifier> i </identifier>
-      <symbol> * </symbol>
-      <symbol> ( </symbol>
-      <parameterList>
-        <symbol> - </symbol>
-        <identifier> j </identifier>
-      </parameterList>
-      <symbol> ) </symbol>
-      <symbol> ; </symbol>
-      <statements>
-        <letStatement>
-          <keyword> let </keyword>
-          <identifier> j </identifier>
-          <symbol> = </symbol>
-          <expression>
-            <term>
-              <identifier> j </identifier>
-            </term>
-          <symbol> / </symbol>
-            <term>
-              <symbol> ( </symbol>
-            </term>
-          <symbol> - </symbol>
-            <term>
-              <integerConstant> 2 </integerConstant>
-            </term>
-          </expression>
-          <symbol> ; </symbol>
-        </letStatement>
-        <letStatement>
-          <keyword> let </keyword>
-          <identifier> i </identifier>
-          <symbol> = </symbol>
-          <expression>
-            <term>
+            <letStatement>
+              <keyword> let </keyword>
               <identifier> i </identifier>
-            </term>
-          <symbol> | </symbol>
-            <term>
+              <symbol> = </symbol>
+              <expression>
+                <term>
+                  <identifier> i </identifier>
+                </term>
+                <symbol> * </symbol>
+                <term>
+                  <symbol> ( </symbol>
+                  <expressionList>
+                  <symbol> - </symbol>
+                  <expression>
+                    <term>
+                      <identifier> j </identifier>
+                    </term>
+                  </expression>
+                  </expressionList>
+                  <symbol> ) </symbol>
+                </term>
+              </expression>
+              <symbol> ; </symbol>
+            </letStatement>
+            <letStatement>
+              <keyword> let </keyword>
               <identifier> j </identifier>
-            </term>
-          </expression>
-          <symbol> ; </symbol>
-        </letStatement>
+              <symbol> = </symbol>
+              <expression>
+                <term>
+                  <identifier> j </identifier>
+                </term>
+                <symbol> / </symbol>
+                <term>
+                  <symbol> ( </symbol>
+                  <expressionList>
+                  <symbol> - </symbol>
+                  <expression>
+                    <term>
+                      <integerConstant> 2 </integerConstant>
+                    </term>
+                  </expression>
+                  </expressionList>
+                  <symbol> ) </symbol>
+                </term>
+              </expression>
+              <symbol> ; </symbol>
+            </letStatement>
+            <letStatement>
+              <keyword> let </keyword>
+              <identifier> i </identifier>
+              <symbol> = </symbol>
+              <expression>
+                <term>
+                  <identifier> i </identifier>
+                </term>
+                <symbol> | </symbol>
+                <term>
+                  <identifier> j </identifier>
+                </term>
+              </expression>
+              <symbol> ; </symbol>
+            </letStatement>
+          </statements>
+          <keyword> return </keyword>
+        </ifStatement>
       </statements>
       <symbol> } </symbol>
     </subroutineBody>
   </subroutineDec>
-  <keyword> return </keyword>
-  <symbol> ; </symbol>
-  <symbol> } </symbol>
   <symbol> } </symbol>
 </class>
