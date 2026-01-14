@@ -16,6 +16,7 @@ class JackTokenizer {
     std::vector<std::string> tokens;
     std::string symbols =  "{}()[].,;+-*/&|<>+=~";
     size_t currentPos = 0;
+   
 
     enum tokenTypes{
         KEYWORD,
@@ -286,6 +287,8 @@ class CompilationEngine{
     JackTokenizer& tokenizer;
     int programLevel = 1;
     std::string indent = "";
+    std::string ops = "+-*/&|<>+=";
+    std::string unaryOps = "~";
     
     public: 
     CompilationEngine(JackTokenizer&, fs::path&);
@@ -496,11 +499,11 @@ void CompilationEngine::compileLet(){
     setIndent();
 
     while (tokenizer.hasMoreTokens() && inLetStatement){
-        writeToken();
+        if ((tokenizer.symbol() != ')')) {writeToken();}
         if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() == ';') ){
             inLetStatement = false;
         }
-        if (tokenizer.symbol() == '='){
+        if ((tokenizer.symbol() == '=') || (tokenizer.symbol() == '[')){
             tokenizer.advance();
             compileExpression();
         }
@@ -603,6 +606,10 @@ void CompilationEngine::compileDo(){
 
         if(tokenizer.symbol() == '('){
             compileExpressionList();
+            if (tokenizer.symbol() == ';'){
+                writeToken();
+                inDoStatement = false;
+            }
         }
         if (inDoStatement){tokenizer.advance();}
     }
@@ -645,24 +652,88 @@ void CompilationEngine::compileExpressionList(){
     }
 
     outputFile << indent<< "</expressionList>\n";
+ 
     if (tokenizer.symbol() == ')'){
         writeToken();
+        tokenizer.advance();
     }
 }
 
 void CompilationEngine::compileExpression(){
+    bool inExpression = true;
     outputFile << indent << "<expression>\n";
-    compileTerm();
+    while (inExpression){
+        compileTerm();
+        tokenizer.advance();
+        if (tokenizer.tokenType() == JackTokenizer::SYMBOL){
+            if (ops.find(tokenizer.symbol()) != std::string::npos){
+                writeToken();
+                tokenizer.advance();
+            }
+            else {
+                inExpression = false;
+                if (tokenizer.symbol() != ']'){
+                    tokenizer.retreat();
+                }
+                
+            }
+        }
+    }
     outputFile << indent << "</expression>\n";
+
+    if (tokenizer.symbol() == ']'){
+        writeToken();
+        tokenizer.advance();
+    }
+
+    if (tokenizer.symbol() == '='){
+        writeToken();
+        tokenizer.advance();
+        compileExpression();
+    }
+
 }
 
+
 void CompilationEngine::compileTerm(){
+    bool inTerm = true;
     programLevel++;
     setIndent();
     outputFile << indent << "<term>\n";
     programLevel++;
     setIndent();
-    writeToken();
+
+    if (tokenizer.symbol() == ';'){
+            inTerm = false;
+    }
+
+    while(inTerm){
+        if (tokenizer.symbol() != ';'){
+            writeToken();
+            tokenizer.advance();
+        }
+
+        if (tokenizer.symbol() == '('){
+            writeToken();
+            compileExpressionList();
+        }
+        else if ((tokenizer.tokenType() == JackTokenizer::SYMBOL) && (tokenizer.symbol() != '.') && (tokenizer.symbol() != '[') && (tokenizer.symbol() != '=') ){
+            inTerm = false;
+            tokenizer.retreat();
+        }
+        else if (tokenizer.symbol() == '[') {
+            writeToken();
+            tokenizer.advance();
+            compileExpression();
+        }
+        else if (tokenizer.symbol() == '=') {
+            writeToken();
+            tokenizer.advance();
+            compileExpression();
+        }
+
+
+    }
     programLevel -= 1;
     setIndent();
     outputFile << indent << "</term>\n";
@@ -721,7 +792,7 @@ void CompilationEngine::setIndent(){
 
 int main() {
 
-    fs::path programFolder = "ExpressionLessSquare";
+    fs::path programFolder = "Square";
     fs::path outputPath;
     std::vector<fs::path> jackFilePaths;
 
